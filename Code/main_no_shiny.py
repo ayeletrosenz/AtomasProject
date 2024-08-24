@@ -4,6 +4,7 @@ import math
 import json
 import numpy as np
 from typing import List, Dict, Tuple
+from agents import GameState, RandomAgent, SmartRandomAgent
 pi = math.pi
 
 pygame.init()
@@ -155,13 +156,13 @@ class Atom:
         self.symbol = atom_data['Sym'][str(self.atom_number-1)]
 
     def create_plus(self):
-        self.atom_number = -1
+        self.atom_number = PLUS
         self.colour = (218, 77, 57)
         self.symbol = "+"
         self.special = True
 
     def create_minus(self):
-        self.atom_number = -2
+        self.atom_number = MINUS
         self.colour = (68, 119, 194)
         self.symbol = "-"
         self.special = True
@@ -477,54 +478,6 @@ class Ring:
 
         pygame.draw.line(screen, (0, 0, 0), (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30), closest_point)
 
-
-class GameState:
-    def __init__(self, ring: 'Ring', current_turn: int):
-        self.atoms: List[int] = [atom.atom_number for atom in ring.atoms]
-        self.num_atoms: int = len(ring.atoms)
-        self.center_atom: int = ring.center_atom.atom_number
-        self.highest_atom: int = ring.highest_atom
-        self.total_turns: int = current_turn
-        self.score: int = ring.score.score
-        self.turns_since_last_plus: int = ring.turns_since_last_plus
-        self.turns_since_last_minus: int = ring.turns_since_last_minus
-
-    def as_dict(self) -> Dict[str, int]:
-        return {
-            'atoms': self.atoms,
-            'num_atoms': self.num_atoms,
-            'center_atom': self.center_atom,
-            'highest_atom': self.highest_atom,
-            'total_turns': self.total_turns,
-            'score': self.score,
-            'turns_since_last_plus': self.turns_since_last_plus,
-            'turns_since_last_minus': self.turns_since_last_minus
-        }
-    
-class RandomAgent:
-    def choose_action(self, game_state: GameState) -> Tuple[int, int, bool]:
-        if game_state.center_atom == MINUS:
-            chosen_atom_index = random.randint(0, game_state.num_atoms - 1)
-            return chosen_atom_index, -1, False
-        # how to click middle atom
-        else:
-            chosen_midway_index = random.randint(0, game_state.num_atoms - 1)
-            return -1, chosen_midway_index, False
-
-class SmartRandomAgent:
-    def choose_action(self, game_state: GameState) -> Tuple[int, int, bool]:
-        if game_state.center_atom == MINUS:
-            chosen_atom_index = random.randint(0, game_state.num_atoms - 1)
-            return chosen_atom_index, -1, False
-        elif game_state.center_atom == PLUS:
-            for i in range(game_state.num_atoms):
-                if game_state.atoms[i] == game_state.atoms[(i+1)%game_state.num_atoms]:
-                    return -1, i, False
-            chosen_midway_index = random.randint(0, game_state.num_atoms - 1)
-            return -1, chosen_midway_index, False
-        else:
-            chosen_midway_index = random.randint(0, game_state.num_atoms - 1)
-            return -1, chosen_midway_index, False
         
 def print_move(game_state, chosen_atom_index, chosen_midway_index, clicked_mid):
         print("\n----------", game_state.total_turns, "----------")
