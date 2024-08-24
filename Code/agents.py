@@ -36,6 +36,16 @@ def can_switch_to_plus(game_state: GameState) -> bool:
     # return true if before this atom the center atom was a minus, meaning you can click it to switch to plus
     return game_state.turns_since_last_minus == 0 and game_state.total_turns >= 1
 
+def lowest_atom_index(game_state: GameState) -> int:
+    # return the index of the lowest atom in the ring that is not a plus
+    lowest_atom_number = float('inf')
+    lowest_index = -1
+    for index, atom in enumerate(game_state.atoms):
+        if atom.atom_number != PLUS and atom.atom_number < lowest_atom_number:
+            lowest_atom_number = atom.atom_number
+            lowest_index = index
+    return lowest_index
+
 """
 HOW TO WRITE AN AGENT:
 It has to have a method "choose_action" that takes a GameState object and returns a tuple:
@@ -67,3 +77,14 @@ class SmartRandomAgent:
                 if random.random() < 0.5: # 50% chance to switch it to a plus
                     return SWITCH_TO_PLUS # switch it to a plus
             return None, choose_random(game_state), False # choose a random midway to throw the atom to
+        
+class AyeletAgent:
+    def choose_action(self, game_state: GameState) -> Tuple[int, int, bool]:
+        if game_state.center_atom == MINUS:
+            return lowest_atom_index(game_state), None, False
+        elif game_state.center_atom == PLUS:
+            # TODO how do i access functions of Ring and Score?
+            pass
+        else:
+            pass
+
