@@ -34,22 +34,5 @@ class AbstractAgent(ABC):
         pass
 
 
-class SimpleAgent:
-    def choose_action(self, game_state: GameState) -> Tuple[int, int, bool]:
-        # Example: print the game state for debugging
-        print(game_state.as_dict())
-
-        if game_state.center_atom == MINUS:
-            print("Center atom is MINUS")
-            chosen_atom_index = random.randint(0, game_state.num_atoms - 1)
-            return chosen_atom_index, -1, False
-            # TODO figure out how i know i can click the middle atom
-        else:
-            print("Center atom is normal or PLUS")
-            chosen_midway_index = random.randint(0, game_state.num_atoms - 1)
-            clicked_mid = False
-            return -1, chosen_midway_index, clicked_mid
-
-
 
 

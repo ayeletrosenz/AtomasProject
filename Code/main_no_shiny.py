@@ -59,7 +59,7 @@ class Score:
 
     def calc_chain_score(self, sym, sym_indices, atoms):
         '''Calculates the score of a chain of atoms.'''
-        print("Calculating chain score...")
+        # print("Calculating chain score...")
 
         score_increase = 0
         reaction_step = 1
@@ -71,7 +71,7 @@ class Score:
             '''Helper function to calculate the score of a simple reaction.'''
             multiplier = reaction_multiplier(reaction_step)
             score = math.floor(multiplier * (atom_nb + 1))
-            print(f"math.floor({multiplier} * ({atom_nb} + 1)) = {math.floor(multiplier * (atom_nb + 1))}")
+            # print(f"math.floor({multiplier} * ({atom_nb} + 1)) = {math.floor(multiplier * (atom_nb + 1))}")
             return score, atom_nb+1
         
         def complex_reaction(atom_nb_inner, atom_nb_outer):
@@ -79,12 +79,12 @@ class Score:
             score, _ = simple_reaction(atom_nb_inner)
 
             score += int(2 * multiplier * (atom_nb_outer - atom_nb_inner + 1))
-            print(f"2 * {multiplier} * ({atom_nb_outer} - {atom_nb_inner} + 1) = {int(2 * multiplier * (atom_nb_outer - atom_nb_inner + 1))}")
+            # print(f"2 * {multiplier} * ({atom_nb_outer} - {atom_nb_inner} + 1) = {int(2 * multiplier * (atom_nb_outer - atom_nb_inner + 1))}")
 
             return score, atom_nb_outer + 2
         
         if len(sym) == 1:
-            print("Simple reaction")
+            # print("Simple reaction")
             score, new_atom_nb = simple_reaction(sym[0][0])
             score_increase += score
 
@@ -104,10 +104,10 @@ class Score:
 
                 outer_number = atom_nb[0]
                 if outer_number > atom_nb_inner:
-                    print('complex reaction')
+                    # print('complex reaction')
                     score, atom_nb_inner = complex_reaction(atom_nb_inner, outer_number)
                 else:
-                    print("Simple reaction")
+                    # print("Simple reaction")
                     score, atom_nb_inner = simple_reaction(atom_nb_inner)
 
                 score_increase += score
@@ -119,7 +119,7 @@ class Score:
 
             ring.atoms.insert(sym_indices[0][0]+1, Atom(atom_nb_inner))
         self.update(score_increase)
-        print("Score:", score_increase)
+        # print("Score:", score_increase)
 
 
 class Background:
@@ -280,7 +280,7 @@ class Ring:
                     if atom.atom_number >= 1:
                         self.score.update(atom.atom_number)
 
-                print("Game over")
+                print("\nGame over")
                 print("Score:", self.score.score)
                 print("Highest atom:", self.highest_atom)
                 pygame.quit()
@@ -289,7 +289,7 @@ class Ring:
         def place_normal(self):
             '''Function to place a non-special atom.'''
             closest_midway = chosen_midway_index
-            print("Place normal: ", self.center_atom.symbol, self.center_atom.atom_number)
+            # print("Place normal: ", self.center_atom.symbol, self.center_atom.atom_number)
 
             self.atoms.insert(closest_midway+1, self.center_atom)
             self.update_atom_count()
@@ -306,7 +306,7 @@ class Ring:
 
             roll = np.roll(atom_list, n//2 - pivot)
             roll = [str(i) if i.isalpha() else int(i) for i in roll]
-            print(roll)
+            # print(roll)
             roll_indices = np.roll(atom_indices, n//2 - pivot)
             roll_indices = [str(i) if i.isalpha() else int(i) for i in roll_indices]
 
@@ -314,7 +314,7 @@ class Ring:
             sym_indices = []
 
             for i in range(1, n//2):
-                print(roll[n//2 - i], roll[n//2 + i])
+                # print(roll[n//2 - i], roll[n//2 + i])
                 if (roll[n//2 - i] == roll[n//2 + i]) and (roll[n//2 - i] >= 0) and (roll[n//2 + i] >= 0):
                     sym_numbers.append((roll[n//2 - i], roll[n//2 + i]))
                     sym_indices.append((roll_indices[n//2 - i], roll_indices[n//2 + i]))
@@ -325,7 +325,7 @@ class Ring:
         def use_plus(self, indice=-1):
             closest_midway = chosen_midway_index
             atom_list = self.atoms.copy()
-            print("using plus", indice)
+            # print("using plus", indice)
 
             if indice != -1:
                 sym, sym_indices = find_symmetry_indices(atom_list, indice)
@@ -363,8 +363,8 @@ class Ring:
                     if atom_list[number] == -1:
                         if atom_list[number-1] == atom_list[(number+1)%len(atom_list)]:
                             new_fusions.append(indice)
-                            print(atom_list[number-1], atom_list[number], atom_list[(number+1)%len(atom_list)])
-                print(new_fusions)
+                            # print(atom_list[number-1], atom_list[number], atom_list[(number+1)%len(atom_list)])
+                # print(new_fusions)
                 if len(new_fusions) == 0:
                     break
                 del self.atoms[new_fusions[0]]
@@ -374,8 +374,8 @@ class Ring:
         check_game_end(self)
 
         turn_played = False
-        print("--------------")
-        print("Current middle atom: ", self.center_atom.atom_number, self.center_atom.symbol)
+        # print("--------------")
+        # print("Current middle atom: ", self.center_atom.atom_number, self.center_atom.symbol)
 
         # check if player has clicked on an atom grabbed by a minus atom to convert it to a plus atom
         if self.center_atom.special == False:
@@ -390,7 +390,7 @@ class Ring:
             if self.center_atom.symbol == "+" and self.atom_count == 1:
                 place_normal(self)
             elif self.center_atom.symbol == "+" and self.atom_count > 1:
-                print("here", self.center_atom.symbol)
+                # print("here", self.center_atom.symbol)
                 use_plus(self) 
             elif self.center_atom.symbol == "-":
                 use_minus(self)
@@ -501,83 +501,63 @@ class GameState:
             'turns_since_last_minus': self.turns_since_last_minus
         }
     
-class SimpleAgent:
+class RandomAgent:
     def choose_action(self, game_state: GameState) -> Tuple[int, int, bool]:
         # Example: print the game state for debugging
-        print(game_state.as_dict())
+        # print(game_state.as_dict())
+
+        print("\n----------", game_state.total_turns, "----------")
+        print("Center atom: ", game_state.center_atom)
+        print("Atoms: ", game_state.atoms)
 
         if game_state.center_atom == MINUS:
             chosen_atom_index = random.randint(0, game_state.num_atoms - 1)
+            print("Chosen atom index: ", chosen_atom_index)
             return chosen_atom_index, -1, False
             # TODO figure out how i know i can click the middle atom
         else:
             chosen_midway_index = random.randint(0, game_state.num_atoms - 1)
-            clicked_mid = False
-            return -1, chosen_midway_index, clicked_mid
+            print("Chosen midway index: ", chosen_midway_index)
+            return -1, chosen_midway_index, False
 
 
 if __name__ == "__main__":
     background = Background()
     ring = Ring()
     ring.start_game()
-   
-   # Decide if the game will be played by a human or an AI agent
-    is_human_player = False  # Change to False to let the AI play
-    agent = SimpleAgent() if not is_human_player else None
+
+    # Decide if the game will be played by a human or an AI agent
+    is_human_player = False  # Set to False for AI
+    agent = RandomAgent() if not is_human_player else None
 
     run = True
     while run:
         background.draw()
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
+        # Handle events (only relevant if human is playing)
+        if is_human_player:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
 
-            chosen_atom_index = None
-            chosen_midway_index = None
-            clicked_mid = False
-
-            if is_human_player:
-                # Human player's turn
-                if event.type == pygame.MOUSEBUTTONDOWN:
+                elif event.type == pygame.MOUSEBUTTONDOWN:
                     mouse_pos = pygame.mouse.get_pos()
                     chosen_atom_index = ring.closest_atom(mouse_pos)[1]
                     chosen_midway_index = ring.closest_midway(mouse_pos)[1]
                     clicked_mid = abs(math.dist((SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30), mouse_pos)) < 40
 
-            else:
-                # AI agent's turn
-                game_state = GameState(ring, ring.total_turns)
-                chosen_atom_index, chosen_midway_index, clicked_mid = agent.choose_action(game_state)
+                    # Human player makes a move
+                    ring.place_atom(chosen_atom_index, chosen_midway_index, clicked_mid, is_human_player)
+                    ring.total_turns += 1
 
-            # if agent:
-            #     game_state = GameState(ring, ring.total_turns)
-            #     is_human_player = False
-            #     chosen_atom_index, chosen_midway_index, clicked_mid = agent.choose_action(game_state)
-            # elif event.type == pygame.MOUSEBUTTONDOWN:
-            #     mouse_pos = pygame.mouse.get_pos()
-            #     chosen_atom_index = ring.closest_atom(mouse_pos)[1]
-            #     chosen_midway_index = ring.closest_midway(mouse_pos)[1]
-            #     clicked_mid = abs(math.dist((SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30), mouse_pos)) < 40
+        else:
+            # AI agent's turn (continuous, not tied to events)
+            game_state = GameState(ring, ring.total_turns)
+            chosen_atom_index, chosen_midway_index, clicked_mid = agent.choose_action(game_state)
+            ring.place_atom(chosen_atom_index, chosen_midway_index, clicked_mid, is_human_player)
+            ring.total_turns += 1
 
-            if chosen_atom_index is not None and chosen_midway_index is not None:
-                ring.place_atom(chosen_atom_index, chosen_midway_index, clicked_mid, is_human_player)
-                ring.total_turns += 1
-
-            # else:
-            #     # AI chooses an action
-            #     game_state = {
-            #         'locations': ring.locations,
-            #         'center_atom': ring.center_atom,
-            #         'atoms': ring.atoms,
-            #         'score': ring.score.score,
-            #         'highest_atom': ring.highest_atom,
-            #     }
-            #     action = agent.choose_action(game_state)
-            #     # Here, you'd implement what happens when the agent takes an action
-            #     ring.place_atom()  # Implement the chosen action in this function
-            #     ring.total_turns += 1
-
+        # Update game state and draw
         ring.update_highest()
         ring.score.draw(ring.highest_atom)
         ring.update_atom_count()
