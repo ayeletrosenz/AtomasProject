@@ -46,6 +46,7 @@ def lowest_atom_index(game_state: GameState) -> int:
             lowest_index = index
     return lowest_index
 
+
 """
 HOW TO WRITE AN AGENT:
 It has to have a method "choose_action" that takes a GameState object and returns a tuple:

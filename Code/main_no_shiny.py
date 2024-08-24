@@ -9,6 +9,8 @@ pi = math.pi
 
 pygame.init()
 
+# TODO i think that you get game over if you get a minus when there are 18 atoms in the ring which should not happen
+
 SCREEN_WIDTH = 400
 SCREEN_HEIGHT = 700
 
