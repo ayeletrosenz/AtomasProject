@@ -503,23 +503,40 @@ class GameState:
     
 class RandomAgent:
     def choose_action(self, game_state: GameState) -> Tuple[int, int, bool]:
-        # Example: print the game state for debugging
-        # print(game_state.as_dict())
+        if game_state.center_atom == MINUS:
+            chosen_atom_index = random.randint(0, game_state.num_atoms - 1)
+            return chosen_atom_index, -1, False
+        # how to click middle atom
+        else:
+            chosen_midway_index = random.randint(0, game_state.num_atoms - 1)
+            return -1, chosen_midway_index, False
 
+class SmartRandomAgent:
+    def choose_action(self, game_state: GameState) -> Tuple[int, int, bool]:
+        if game_state.center_atom == MINUS:
+            chosen_atom_index = random.randint(0, game_state.num_atoms - 1)
+            return chosen_atom_index, -1, False
+        elif game_state.center_atom == PLUS:
+            for i in range(game_state.num_atoms):
+                if game_state.atoms[i] == game_state.atoms[(i+1)%game_state.num_atoms]:
+                    return -1, i, False
+            chosen_midway_index = random.randint(0, game_state.num_atoms - 1)
+            return -1, chosen_midway_index, False
+        else:
+            chosen_midway_index = random.randint(0, game_state.num_atoms - 1)
+            return -1, chosen_midway_index, False
+        
+def print_move(game_state, chosen_atom_index, chosen_midway_index, clicked_mid):
         print("\n----------", game_state.total_turns, "----------")
         print("Center atom: ", game_state.center_atom)
         print("Atoms: ", game_state.atoms)
-
-        if game_state.center_atom == MINUS:
-            chosen_atom_index = random.randint(0, game_state.num_atoms - 1)
-            print("Chosen atom index: ", chosen_atom_index)
-            return chosen_atom_index, -1, False
-            # TODO figure out how i know i can click the middle atom
+        if clicked_mid:
+            print("Switched to plus")
         else:
-            chosen_midway_index = random.randint(0, game_state.num_atoms - 1)
-            print("Chosen midway index: ", chosen_midway_index)
-            return -1, chosen_midway_index, False
-
+            if chosen_atom_index != -1:
+                print("Chosen atom index: ", chosen_atom_index)
+            if chosen_midway_index != -1:
+                print("Chosen midway index: ", chosen_midway_index)
 
 if __name__ == "__main__":
     background = Background()
@@ -528,7 +545,7 @@ if __name__ == "__main__":
 
     # Decide if the game will be played by a human or an AI agent
     is_human_player = False  # Set to False for AI
-    agent = RandomAgent() if not is_human_player else None
+    agent = SmartRandomAgent() if not is_human_player else None
 
     run = True
     while run:
@@ -554,6 +571,7 @@ if __name__ == "__main__":
             # AI agent's turn (continuous, not tied to events)
             game_state = GameState(ring, ring.total_turns)
             chosen_atom_index, chosen_midway_index, clicked_mid = agent.choose_action(game_state)
+            print_move(game_state, chosen_atom_index, chosen_midway_index, clicked_mid)
             ring.place_atom(chosen_atom_index, chosen_midway_index, clicked_mid, is_human_player)
             ring.total_turns += 1
 
