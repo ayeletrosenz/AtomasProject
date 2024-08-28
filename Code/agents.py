@@ -6,7 +6,7 @@ from game import Agent, Action
 
 PLUS = -1
 MINUS = -2
-SWITCH_TO_PLUS = (-1, -1, True)
+SWITCH_TO_PLUS = (None, None, True)
 
 class GameState:
     def __init__(self, ring, current_turn: int):
