@@ -3,13 +3,14 @@ import random
 import math
 import json
 import numpy as np
+import copy
 from typing import List, Dict, Tuple
-from agents import GameState, RandomAgent, SmartRandomAgent
+# from agents import GameState, RandomAgent, SmartRandomAgent
 pi = math.pi
 
 pygame.init()
 
-# TODO i think that you get game over if you get a minus when there are 18 atoms in the ring which should not happen
+
 
 SCREEN_WIDTH = 400
 SCREEN_HEIGHT = 700
@@ -20,7 +21,7 @@ MINUS = -2
 pygame.display.set_caption('Atomas')
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pygame.time.Clock()
-with open("Code/atom_data.json", "r") as f:
+with open(r"C:\Users\amirt\PycharmProjects\AtomasProject\Code\atom_data.json", "r") as f:
     atom_data = json.load(f)
         
 
@@ -30,6 +31,15 @@ class Score:
         self.base_font = pygame.font.Font(None, 32)
         self.score_location = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 6)
         self.score_name_location = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 6 + 30)
+
+
+    def copy(self):
+        new_score = Score()
+        new_score.score = self.score
+        return new_score
+
+    def get_value(self):
+        return self.score
 
     def reset(self):
         self.score = 0
@@ -60,7 +70,7 @@ class Score:
         draw_num_score()
         draw_atom_name(atom_nb)
 
-    def calc_chain_score(self, sym, sym_indices, atoms):
+    def calc_chain_score(self,ring , sym, sym_indices, atoms):
         '''Calculates the score of a chain of atoms.'''
         # print("Calculating chain score...")
 
@@ -146,7 +156,7 @@ class Atom:
         self.special = False
         if atom_nb != 0:
             self.create(atom_nb)
-        
+
     def create(self, atom_nb=1):
         self.atom_number = atom_nb
         self.colour = atom_data['Color'][str(self.atom_number-1)]
@@ -191,6 +201,24 @@ class Ring:
     #     self.score = 0
     #     self.center_atom = ""
 
+    def copy(self):
+        # Create a new instance of Ring
+        new_ring = Ring()
+
+        # Deep copy all attributes
+        new_ring.atom_count = self.atom_count
+        new_ring.max_atoms = self.max_atoms
+        new_ring.highest_atom = self.highest_atom
+        new_ring.atoms = copy.deepcopy(self.atoms)  # Deep copy the list of atoms
+        new_ring.score = self.score.copy()  # Assuming Score class has a copy method
+        new_ring.center_atom = copy.deepcopy(self.center_atom)  # Deep copy the center atom
+        new_ring.font = self.font  # Font can be shallow copied (immutable)
+        new_ring.locations = copy.deepcopy(self.locations)  # Deep copy the list of locations
+        new_ring.total_turns = self.total_turns
+        new_ring.turns_since_last_plus = self.turns_since_last_plus
+        new_ring.turns_since_last_minus = self.turns_since_last_minus
+
+        return new_ring
     def update_highest(self):
         '''Helper function to update the highest scoring atom in the ring.'''
         to_check = [i.atom_number for i in self.atoms if i.atom_number > 0]
@@ -198,6 +226,14 @@ class Ring:
         current_highest = int(sorted(to_check, key=int)[-1])
         if current_highest > self.highest_atom:
             self.highest_atom = current_highest
+
+    def get_score(self):
+        return self.score.get_value()
+
+    def max_atom(self):
+        return np.max(self.atoms)
+    def get_highest_atom(self):
+        return self.highest_atom
 
     def start_game(self):
         '''Function to start the game.
@@ -274,7 +310,7 @@ class Ring:
             case _:
                 self.normal_atoms(self.center_atom, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30))
 
-    def place_atom(self, chosen_atom_index, chosen_midway_index, clicked_mid, is_human_player):
+    def place_atom(self, chosen_atom_index, chosen_midway_index, clicked_mid, is_human_player = False):
         def check_game_end(self):
             '''Function to check if the player loses the game.
             '''
@@ -296,7 +332,8 @@ class Ring:
 
             self.atoms.insert(closest_midway+1, self.center_atom)
             self.update_atom_count()
-            self.generate_inner()
+            # I put it in comment because the opponent is generating the inner atom now.
+            # self.generate_inner()
 
         def find_symmetry_indices(atoms, pivot):
             atom_list = [atom.atom_number for atom in atoms]
@@ -340,7 +377,7 @@ class Ring:
                 self.update_atom_count()
                 return
             elif len(sym) >= 1:
-                self.score.calc_chain_score(sym, sym_indices, atom_list)
+                self.score.calc_chain_score(self,sym, sym_indices, atom_list)
             self.update_atom_count()
 
         def use_minus(self):
@@ -400,7 +437,7 @@ class Ring:
 
         check_new_fusions(self)
         
-    def draw_outer(self):
+    def draw_outer(self, is_human_player=False):
         if self.atom_count == 0:
             return
 
@@ -482,9 +519,9 @@ class Ring:
 
         
 def print_move(game_state, chosen_atom_index, chosen_midway_index, clicked_mid):
-        print("\n----------", game_state.total_turns, "----------")
-        print("Center atom: ", game_state.center_atom)
-        print("Atoms: ", game_state.atoms)
+        print("\n----------", game_state._ring.total_turns, "----------")
+        print("Center atom: ", game_state._ring.center_atom.atom_number)
+        print("Atoms: [", ", ".join(str(atom.atom_number) for atom in game_state._ring.atoms), "]")
         if clicked_mid:
             print("Switched to plus")
         else:
@@ -493,52 +530,52 @@ def print_move(game_state, chosen_atom_index, chosen_midway_index, clicked_mid):
             if chosen_midway_index != -1:
                 print("Chosen midway index: ", chosen_midway_index)
 
-if __name__ == "__main__":
-    background = Background()
-    ring = Ring()
-    ring.start_game()
-
-    # Decide if the game will be played by a human or an AI agent
-    is_human_player = False  # Set to False for AI
-    agent = SmartRandomAgent() if not is_human_player else None
-
-    run = True
-    while run:
-        background.draw()
-
-        # Handle events (only relevant if human is playing)
-        if is_human_player:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    run = False
-
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    mouse_pos = pygame.mouse.get_pos()
-                    chosen_atom_index = ring.closest_atom(mouse_pos)[1]
-                    chosen_midway_index = ring.closest_midway(mouse_pos)[1]
-                    clicked_mid = abs(math.dist((SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30), mouse_pos)) < 40
-
-                    # Human player makes a move
-                    ring.place_atom(chosen_atom_index, chosen_midway_index, clicked_mid, is_human_player)
-                    ring.total_turns += 1
-
-        else:
-            # AI agent's turn (continuous, not tied to events)
-            game_state = GameState(ring, ring.total_turns)
-            chosen_atom_index, chosen_midway_index, clicked_mid = agent.choose_action(game_state)
-            print_move(game_state, chosen_atom_index, chosen_midway_index, clicked_mid)
-            ring.place_atom(chosen_atom_index, chosen_midway_index, clicked_mid, is_human_player)
-            ring.total_turns += 1
-
-        # Update game state and draw
-        ring.update_highest()
-        ring.score.draw(ring.highest_atom)
-        ring.update_atom_count()
-
-        ring.draw_outer()
-        ring.draw_inner()
-
-        pygame.display.flip()
-        clock.tick(5)
-
-    pygame.quit()
+# if __name__ == "__main__":
+#     background = Background()
+#     ring = Ring()
+#     ring.start_game()
+#
+#     # Decide if the game will be played by a human or an AI agent
+#     is_human_player = False  # Set to False for AI
+#     agent = SmartRandomAgent() if not is_human_player else None
+#
+#     run = True
+#     while run:
+#         background.draw()
+#
+#         # Handle events (only relevant if human is playing)
+#         if is_human_player:
+#             for event in pygame.event.get():
+#                 if event.type == pygame.QUIT:
+#                     run = False
+#
+#                 elif event.type == pygame.MOUSEBUTTONDOWN:
+#                     mouse_pos = pygame.mouse.get_pos()
+#                     chosen_atom_index = ring.closest_atom(mouse_pos)[1]
+#                     chosen_midway_index = ring.closest_midway(mouse_pos)[1]
+#                     clicked_mid = abs(math.dist((SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30), mouse_pos)) < 40
+#
+#                     # Human player makes a move
+#                     ring.place_atom(chosen_atom_index, chosen_midway_index, clicked_mid, is_human_player)
+#                     ring.total_turns += 1
+#
+#         else:
+#             # AI agent's turn (continuous, not tied to events)
+#             game_state = GameState(ring, ring.total_turns)
+#             chosen_atom_index, chosen_midway_index, clicked_mid = agent.choose_action(game_state)
+#             print_move(game_state, chosen_atom_index, chosen_midway_index, clicked_mid)
+#             ring.place_atom(chosen_atom_index, chosen_midway_index, clicked_mid, is_human_player)
+#             ring.total_turns += 1
+#
+#         # Update game state and draw
+#         ring.update_highest()
+#         ring.score.draw(ring.highest_atom)
+#         ring.update_atom_count()
+#
+#         ring.draw_outer()
+#         ring.draw_inner()
+#
+#         pygame.display.flip()
+#         clock.tick(5)
+#
+#     pygame.quit()
