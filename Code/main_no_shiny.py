@@ -4,12 +4,19 @@ import math
 import json
 import numpy as np
 import copy
+from enum import Enum
 from typing import List, Dict, Tuple
 # from agents import GameState, RandomAgent, SmartRandomAgent
 pi = math.pi
 
 pygame.init()
 
+class Action(Enum):
+    PLACE_ATOM = 1
+    CONVERT_TO_PLUS = 2
+    STOP = 3
+NO_SELECTION = -1  # Indicates no atom was selected from the ring.
+OpponentAction = "generate inner"
 
 
 SCREEN_WIDTH = 400
@@ -518,7 +525,11 @@ class Ring:
         pygame.draw.line(screen, (0, 0, 0), (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30), closest_point)
 
         
-def print_move(game_state, chosen_atom_index, chosen_midway_index, clicked_mid):
+def print_move(game_state,action):
+        action_type, chosen_atom_index, midway_index = action
+        clicked_mid = False
+        if action_type == Action.CONVERT_TO_PLUS:
+            clicked_mid = True
         print("\n----------", game_state._ring.total_turns, "----------")
         print("Center atom: ", game_state._ring.center_atom.atom_number)
         print("Atoms: [", ", ".join(str(atom.atom_number) for atom in game_state._ring.atoms), "]")
@@ -527,8 +538,8 @@ def print_move(game_state, chosen_atom_index, chosen_midway_index, clicked_mid):
         else:
             if chosen_atom_index != -1:
                 print("Chosen atom index: ", chosen_atom_index)
-            if chosen_midway_index != -1:
-                print("Chosen midway index: ", chosen_midway_index)
+            if midway_index != -1:
+                print("Chosen midway index: ", midway_index)
 
 # if __name__ == "__main__":
 #     background = Background()
