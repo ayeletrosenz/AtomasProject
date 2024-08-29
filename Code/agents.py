@@ -134,31 +134,12 @@ class ReflexAgent(Agent):
 
     def evaluation_function(self, current_game_state, action):
         """
-        Design a better evaluation function here.
-
-        The evaluation function takes in the current and proposed successor
-        GameStates and returns a number, where higher numbers are better.
+        The evaluation function takes in the current GameState and a proposed action.
+        It returns the score of the successor state after applying the action.
         """
 
         # Generate the successor game state based on the current action
         successor_game_state = current_game_state.generate_successor(action=action)
 
-        # Get the opponent's legal actions
-        legal_agent_actions = successor_game_state.get_opponent_legal_actions()
-        if not legal_agent_actions:
-            return -1  # Return a low score if no legal actions are available
-
-        # Generate the opponent's move's successor state
-        successor_1_game_state = successor_game_state.generate_successor(agent_index=1, action=legal_agent_actions[0])
-
-        # Collect the legal moves for the agent after the opponent's move
-        legal_moves = successor_1_game_state.get_agent_legal_actions()
-        if not legal_moves:
-            return -1  # Return a low score if no legal moves are available
-
-        # Generate scores for all legal moves and return the highest one
-        scores = [successor_1_game_state.generate_successor(action=action).score for action in legal_moves]
-        if scores:
-            return max(scores)
-
-        return -1  # Default return value if no scores were generated
+        # Return the score of the successor game state
+        return successor_game_state.score
