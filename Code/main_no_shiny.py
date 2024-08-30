@@ -28,7 +28,7 @@ MINUS = -2
 pygame.display.set_caption('Atomas')
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pygame.time.Clock()
-with open(r"C:\Users\amirt\PycharmProjects\AtomasProject\Code\atom_data.json", "r") as f:
+with open(r"Code/atom_data.json", "r") as f:
     atom_data = json.load(f)
         
 

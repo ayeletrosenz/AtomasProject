@@ -6,7 +6,8 @@ from game import Agent, Action
 
 PLUS = -1
 MINUS = -2
-SWITCH_TO_PLUS = (None, None, True)
+NO_SELECTION = None
+SWITCH_TO_PLUS = (NO_SELECTION, NO_SELECTION, True)
 
 class GameState:
     def __init__(self, ring, current_turn: int):
@@ -50,54 +51,120 @@ def lowest_atom_index(game_state: GameState) -> int:
     return lowest_index
 
 
-"""
-HOW TO WRITE AN AGENT:
-It has to have a method "choose_action" that takes a GameState object and returns a tuple:
-(chosen_atom_index: int, chosen_atom_index: int, switch_to_plus: bool)
-actually only one of them is needed for each action
-look at the SmartRandomAgent for an example
-"""
-class RandomAgent(Agent):
+# class RandomAgent(Agent):
 
-    def get_action(self, game_state):
-        legal_moves = game_state.get_agent_legal_actions()
-        if legal_moves:
-            return random.choice(legal_moves)
-        # else:
-        #     return None
-    def choose_action(self, game_state: GameState) -> Tuple[int, int, bool]:
-        if game_state.center_atom == MINUS: 
-            return choose_random(game_state), None, False
-        else:
-            if can_switch_to_plus(game_state):
-                if random.random() < 0.5:
-                    return SWITCH_TO_PLUS
-            return None, choose_random(game_state), False
+#     def get_action(self, game_state):
+#         legal_moves = game_state.get_agent_legal_actions()
+#         if legal_moves:
+#             return random.choice(legal_moves)
+#         # else:
+#         #     return None
+#     def choose_action(self, game_state: GameState) -> Tuple[int, int, bool]:
+#         if game_state.center_atom == MINUS: 
+#             return choose_random(game_state), None, False
+#         else:
+#             if can_switch_to_plus(game_state):
+#                 if random.random() < 0.5:
+#                     return SWITCH_TO_PLUS
+#             return None, choose_random(game_state), False
 
-class SmartRandomAgent:
-    def choose_action(self, game_state: GameState) -> Tuple[int, int, bool]:
-        if game_state.center_atom == MINUS: # there's a minus in the center
-            return choose_random(game_state), None, False # choose a random atom to remove
-        elif game_state.center_atom == PLUS: # there's a plus in the center
-            for i in range(game_state.num_atoms): # check if there's a pair of atoms you can combine
-                if game_state.atoms[i] == game_state.atoms[(i+1)%game_state.num_atoms]: # combine the first pair you find
-                    return None, i, False # combine the pair
-            return None, choose_random(game_state), False # if there's no pair, choose a random modway
-        else: # there's a regular atom in the center
-            if can_switch_to_plus(game_state): # if it was removed by a minus and you can switch it to a plus
-                if random.random() < 0.5: # 50% chance to switch it to a plus
-                    return SWITCH_TO_PLUS # switch it to a plus
-            return None, choose_random(game_state), False # choose a random midway to throw the atom to
+# class SmartRandomAgent:
+#     def choose_action(self, game_state: GameState) -> Tuple[int, int, bool]:
+#         if game_state.center_atom == MINUS: # there's a minus in the center
+#             return choose_random(game_state), None, False # choose a random atom to remove
+#         elif game_state.center_atom == PLUS: # there's a plus in the center
+#             for i in range(game_state.num_atoms): # check if there's a pair of atoms you can combine
+#                 if game_state.atoms[i] == game_state.atoms[(i+1)%game_state.num_atoms]: # combine the first pair you find
+#                     return None, i, False # combine the pair
+#             return None, choose_random(game_state), False # if there's no pair, choose a random modway
+#         else: # there's a regular atom in the center
+#             if can_switch_to_plus(game_state): # if it was removed by a minus and you can switch it to a plus
+#                 if random.random() < 0.5: # 50% chance to switch it to a plus
+#                     return SWITCH_TO_PLUS # switch it to a plus
+#             return None, choose_random(game_state), False # choose a random midway to throw the atom to
         
 class AyeletAgent:
-    def choose_action(self, game_state: GameState) -> Tuple[int, int, bool]:
+    def choose_action(self, game_state: GameState) -> Tuple[Action, int, int]:
+        def find_longest_chain_midway() -> int:
+            """Find the midway index that leads to the longest chain of atoms."""
+            longest_chain_length = 0
+            longest_chain_midway = None
+            for i in range(game_state.num_atoms):
+                chain_length = self.calculate_chain_length(i)
+                if chain_length > longest_chain_length:
+                    longest_chain_length = chain_length
+                    longest_chain_midway = i
+            return longest_chain_midway
+
+        def find_chain_reaction_midway() -> int:
+            """Find a midway next to a plus atom that would trigger a chain reaction."""
+            for i in range(game_state.num_atoms):
+                if game_state.atoms[i] == PLUS:
+                    if self.would_cause_chain_reaction(i):
+                        return i
+            return None
+
+        def find_bigger_chain_midway() -> int:
+            """Find a midway to place the atom that would create a larger chain."""
+            for i in range(game_state.num_atoms):
+                if self.would_increase_chain_size(i):
+                    return i
+            return None
+
+        def find_best_placement() -> int:
+            """Find the best place to put the atom by comparing to the closest lower atom value."""
+            closest_index = None
+            closest_difference = float('inf')
+            for i in range(game_state.num_atoms):
+                if game_state.atoms[i] < game_state.center_atom and (game_state.center_atom - game_state.atoms[i]) < closest_difference:
+                    closest_difference = game_state.center_atom - game_state.atoms[i]
+                    closest_index = i
+            return closest_index
+
         if game_state.center_atom == MINUS:
-            return lowest_atom_index(game_state), None, False
+            # Choose the lowest atom
+            chosen_atom_index = lowest_atom_index(game_state)
+            return (Action.PLACE_ATOM, chosen_atom_index, NO_SELECTION)
+
         elif game_state.center_atom == PLUS:
-            # TODO how do i access functions of Ring and Score?
-            pass
+            # Choose the midway of the longest chain
+            chosen_midway_index = find_longest_chain_midway()
+            return (Action.PLACE_ATOM, NO_SELECTION, chosen_midway_index)
+
         else:
-            pass
+            if can_switch_to_plus(game_state) and (
+                (game_state.num_atoms > 10 and self.exists_chain_of_length(4)) or 
+                (game_state.num_atoms > 14 and self.exists_chain_of_length(2))):
+                # Switch to plus if conditions are met
+                return (Action.CONVERT_TO_PLUS, NO_SELECTION, NO_SELECTION)
+
+            # Check for a midway next to a plus atom that would cause a chain reaction
+            chain_reaction_midway = find_chain_reaction_midway()
+            if chain_reaction_midway is not None:
+                return (Action.PLACE_ATOM, NO_SELECTION, chain_reaction_midway)
+
+            # Check for a midway to place the atom that would create a larger chain
+            bigger_chain_midway = find_bigger_chain_midway()
+            if bigger_chain_midway is not None:
+                return (Action.PLACE_ATOM, NO_SELECTION, bigger_chain_midway)
+
+            # Default to placing the atom after the closest lower value atom
+            best_placement_index = find_best_placement()
+            return (Action.PLACE_ATOM, NO_SELECTION, best_placement_index)
+
+    # The helper methods below need to be implemented to complete the logic
+    def calculate_chain_length(self, index: int) -> int:
+        pass
+
+    def would_cause_chain_reaction(self, index: int) -> bool:
+        pass
+
+    def would_increase_chain_size(self, index: int) -> bool:
+        pass
+
+    def exists_chain_of_length(self, length: int) -> bool:
+        pass
+
 
 
 class ReflexAgent(Agent):
