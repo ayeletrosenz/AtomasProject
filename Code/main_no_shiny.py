@@ -39,7 +39,6 @@ class Score:
         self.score_location = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 6)
         self.score_name_location = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 6 + 30)
 
-
     def copy(self):
         new_score = Score()
         new_score.score = self.score
