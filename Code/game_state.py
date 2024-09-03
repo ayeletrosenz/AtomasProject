@@ -20,25 +20,37 @@ class GameState(object):
         if ring is None:
             ring = main_no_shiny.Ring()
             ring.start_game()
-        self._ring = ring
-        self._done = False  # You need to define this attribute
-        self._score = self._ring.get_score()
+        self.ring = ring
+        self.done = False  # You need to define this attribute
+        self.score = ring.get_score()
+        self.atom_count = ring.atom_count
+        self.highest_atom_val = ring.highest_atom
+        self.atom_vals = ring.get_atom_vals(ring.atoms)
+        self.total_turns = ring.total_turns
+        self.turns_since_last_plus = ring.turns_since_last_plus
+        self.turns_since_last_minus = ring.turns_since_last_minus
 
-    @property
-    def score(self):
-        return self._ring.get_score()
+    def gat_atoms_val_list(self, lst):
+        atom_val_list = []
+        for atom in lst:
+            atom_val_list.append(atom.atom_number)
+        return atom_val_list
 
-    @property
-    def done(self):
-        return self._done
-
-    @property
-    def highest_atom(self):
-        return self._ring.get_highest_atom()
-
-    @property
-    def ring(self):
-        return self._ring
+    # @property
+    # def score(self):
+    #     return self._ring.get_score()
+    #
+    # @property
+    # def done(self):
+    #     return self._done
+    #
+    # @property
+    # def highest_atom(self):
+    #     return self._ring.get_highest_atom()
+    #
+    # @property
+    # def ring(self):
+    #     return self._ring
 
     def get_legal_actions(self, agent_index):
         if agent_index == 0:
@@ -54,13 +66,13 @@ class GameState(object):
     def get_agent_legal_actions(self):
         legal_moves = []
 
-        if self._ring.center_atom.special == False or self._ring.center_atom.symbol == "+":
-            for midway_index in range(len(self._ring.atoms)):
+        if self.ring.center_atom.special == False or self.ring.center_atom.symbol == "+":
+            for midway_index in range(len(self.ring.atoms)):
                 legal_moves.append((Action.PLACE_ATOM, NO_SELECTION, midway_index))
 
-        if self._ring.center_atom.symbol == "-":
-            for chosen_atom_index in range(len(self._ring.atoms)):
-                for midway_index in range(len(self._ring.atoms)):
+        if self.ring.center_atom.symbol == "-":
+            for chosen_atom_index in range(len(self.ring.atoms)):
+                for midway_index in range(len(self.ring.atoms)):
                     legal_moves.append((Action.PLACE_ATOM, chosen_atom_index, midway_index))
                     legal_moves.append((Action.CONVERT_TO_PLUS, chosen_atom_index, midway_index))
 
@@ -68,21 +80,21 @@ class GameState(object):
 
     def apply_opponent_action(self, action):
         if action == OpponentAction:
-            self._ring.generate_inner()
+            self.ring.generate_inner()
 
     def apply_action(self, action):
         action_type, chosen_atom_index, midway_index = action
 
         if action_type == Action.PLACE_ATOM:
             clicked_mid = False
-            self._ring.place_atom(chosen_atom_index, midway_index, clicked_mid, False)
+            self.ring.place_atom(chosen_atom_index, midway_index, clicked_mid, False)
 
         elif action_type == Action.CONVERT_TO_PLUS:
             clicked_mid = True
-            self._ring.place_atom(chosen_atom_index, midway_index, clicked_mid, False)
+            self.ring.place_atom(chosen_atom_index, midway_index, clicked_mid, False)
 
     def generate_successor(self, agent_index=0, action=Action.STOP):
-        successor = GameState(ring=self._ring.copy())
+        successor = GameState(ring=self.ring.copy())
         if agent_index == 0:
             successor.apply_action(action)
         elif agent_index == 1:

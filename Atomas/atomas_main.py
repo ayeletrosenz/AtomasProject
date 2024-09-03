@@ -5,7 +5,7 @@ import config
 from agents import GameState, RandomAgent, SmartRandomAgent
 from ring import Ring
 from background import Background
-from config import SCREEN_WIDTH, SCREEN_HEIGHT, clock
+from config import clock
 pi = math.pi
 
 if __name__ == "__main__":
