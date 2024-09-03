@@ -52,14 +52,14 @@ class Game(object):
         self.opponent_agent.stop_running()
 
     def _game_loop(self):
-        # pygame.init()
-        # pygame.display.set_caption('Atomas')
-        # screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        # clock = pygame.time.Clock()
-        # background = main_no_shiny.Background()
+        pygame.init()
+        pygame.display.set_caption('Atomas')
+        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        clock = pygame.time.Clock()
+        background = main_no_shiny.Background()
 
         while not self._should_quit:
-            # background.draw()
+            background.draw()
             if self.sleep_between_actions:
                 time.sleep(1)
             action = self.agent.get_action(self._state)
@@ -71,14 +71,14 @@ class Game(object):
             self._state.apply_opponent_action(opponent_action)
             self._state.ring.total_turns += 1
             self._state.ring.update_highest()
-            # self._state.ring.score.draw(self._state.ring.highest_atom)
+            self._state.ring.score.draw(self._state.ring.highest_atom)
             self._state.ring.update_atom_count()
-            #
-            # self._state.ring.draw_outer()
-            # self._state.ring.draw_inner()
 
-            # pygame.display.flip()
-            # clock.tick(5)
+            self._state.ring.draw_outer()
+            self._state.ring.draw_inner()
+
+            pygame.display.flip()
+            clock.tick(5)
 
         return self._state.score, self._state.highest_atom  # Access the score and highest atom correctly
 

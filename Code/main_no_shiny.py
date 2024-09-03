@@ -9,7 +9,7 @@ from typing import List, Dict, Tuple
 # from agents import GameState, RandomAgent, SmartRandomAgent
 pi = math.pi
 
-# pygame.init()
+pygame.init()
 
 class Action(Enum):
     PLACE_ATOM = 1
@@ -25,17 +25,17 @@ SCREEN_HEIGHT = 700
 PLUS = -1
 MINUS = -2
 
-# pygame.display.set_caption('Atomas')
-# screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-# clock = pygame.time.Clock()
-with open(r"C:\Users\amirt\PycharmProjects\AtomasProject\Code\atom_data.json", "r") as f:
+pygame.display.set_caption('Atomas')
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+clock = pygame.time.Clock()
+with open(r"atom_data.json", "r") as f:
     atom_data = json.load(f)
         
 
 class Score:
     def __init__(self):
         self.score = 0
-        # self.base_font = pygame.font.Font(None, 32)
+        self.base_font = pygame.font.Font(None, 32)
         self.score_location = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 6)
         self.score_name_location = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 6 + 30)
 
@@ -147,14 +147,14 @@ class Background:
         self.RING_COLOUR = (133, 94, 97)
         self.ATOM_RING_CENTER = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30)
 
-    # def draw(self):
-    #     '''Draws the background as well as the ring surrouding the atoms.'''
-    #     screen.fill(self.BACKGROUND_COLOR)
-    #     pygame.draw.circle(screen, self.RING_COLOUR,
-    #                        self.ATOM_RING_CENTER, 190)
-    #     pygame.draw.circle(screen, self.BACKGROUND_COLOR,
-    #                        self.ATOM_RING_CENTER, 187)
-    #
+    def draw(self):
+        '''Draws the background as well as the ring surrouding the atoms.'''
+        screen.fill(self.BACKGROUND_COLOR)
+        pygame.draw.circle(screen, self.RING_COLOUR,
+                           self.ATOM_RING_CENTER, 190)
+        pygame.draw.circle(screen, self.BACKGROUND_COLOR,
+                           self.ATOM_RING_CENTER, 187)
+        
 
 class Atom:
     def __init__(self, atom_nb=0):
@@ -194,7 +194,7 @@ class Ring:
         self.atoms = []
         self.score = Score()
         self.center_atom = ""
-        # self.font = pygame.font.Font(None, 25)
+        self.font = pygame.font.Font(None, 25)
         self.locations = []
 
         self.total_turns = 1
@@ -218,7 +218,7 @@ class Ring:
         new_ring.atoms = copy.deepcopy(self.atoms)  # Deep copy the list of atoms
         new_ring.score = self.score.copy()  # Assuming Score class has a copy method
         new_ring.center_atom = copy.deepcopy(self.center_atom)  # Deep copy the center atom
-        # new_ring.font = self.font  # Font can be shallow copied (immutable)
+        new_ring.font = self.font  # Font can be shallow copied (immutable)
         new_ring.locations = copy.deepcopy(self.locations)  # Deep copy the list of locations
         new_ring.total_turns = self.total_turns
         new_ring.turns_since_last_plus = self.turns_since_last_plus
@@ -328,7 +328,7 @@ class Ring:
                 print("\nGame over")
                 print("Score:", self.score.score)
                 print("Highest atom:", self.highest_atom)
-                # pygame.quit()
+                pygame.quit()
                 exit()
 
         def place_normal(self):
