@@ -136,7 +136,7 @@ class Score:
             for index in indices:
                 del ring.atoms[index]
 
-            ring.atoms.insert(sym_indices[0][0]+1, Atom(atom_nb_inner))
+            ring.atoms.insert(sym_indices[-1][0], Atom(atom_nb_inner))
         self.update(score_increase)
         # print("Score:", score_increase)
 
