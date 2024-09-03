@@ -8,7 +8,6 @@ import main_no_shiny
 import agents
 
 
-
 class GameRunner(object):
     def __init__(self, agent=None, sleep_between_actions=False):
         super(GameRunner, self).__init__()
@@ -46,7 +45,7 @@ class GameRunner(object):
 
 def main():
     initial_state = GameState()
-    agent = agents.MCTSAgent()
+    agent = agents.ReflexAgent()
     game_runner = GameRunner(agent=agent, sleep_between_actions= True)
     game_runner.new_game(initial_state)
     # pygame.quit()

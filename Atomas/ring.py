@@ -149,7 +149,7 @@ class Ring:
                 self.update_atom_count()
                 return
             elif len(sym) == 1:
-                new_score, new_atom_nb = Score.calc_chain_score().simple_reaction(sym[0][0])
+                new_score, new_atom_nb = Score.calc_chain_score(self).simple_reaction(sym[0][0])
                 score_increase += new_score
 
                 self.atoms.insert(sym_indices[0][0]+1, Atom(new_atom_nb))
@@ -338,8 +338,7 @@ class Ring:
 
         pygame.draw.line(screen, (0, 0, 0), (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30), closest_point)
 
-
-    def print_move(game_state, chosen_atom_index, chosen_midway_index, clicked_mid):
+    def print_move(self, game_state, chosen_atom_index, chosen_midway_index, clicked_mid):
         print("\n----------", game_state.total_turns, "----------")
         print("Center atom: ", game_state.center_atom)
         print("Atoms: ", game_state.atoms)
