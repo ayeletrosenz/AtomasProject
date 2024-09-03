@@ -15,8 +15,8 @@ NO_SELECTION = -1  # Indicates no atom was selected from the ring.
 OpponentAction = "generate inner"
 
 class GameState(object):
-    def _init_(self, ring=None):
-        super(GameState, self)._init_()
+    def __init__(self, ring=None):
+        super(GameState, self).__init__()
         if ring is None:
             ring = main_no_shiny.Ring()
             ring.start_game()
