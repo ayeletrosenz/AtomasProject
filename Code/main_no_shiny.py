@@ -529,8 +529,8 @@ def print_move(game_state,action):
         clicked_mid = False
         if action_type == Action.CONVERT_TO_PLUS:
             clicked_mid = True
-        print("\n----------", game_state.ring.total_turns, "----------")
-        print("Center atom: ", game_state.ring.center_atom.atom_number)
+        print("\n----------", game_state._ring.total_turns, "----------")
+        print("Center atom: ", game_state._ring.center_atom.atom_number)
         print("Atoms: [", ", ".join(str(atom.atom_number) for atom in game_state._ring.atoms), "]")
         if clicked_mid:
             print("Switched to plus")
