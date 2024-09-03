@@ -46,9 +46,9 @@ class GameRunner(object):
 def main():
     initial_state = GameState()
     agent = agents.ReflexAgent()
-    game_runner = GameRunner(agent=agent, sleep_between_actions= True)
+    game_runner = GameRunner(agent=agent, sleep_between_actions= False)
     game_runner.new_game(initial_state)
-    # pygame.quit()
+    pygame.quit()
 
 if __name__ == '__main__':
     main()
