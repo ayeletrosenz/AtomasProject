@@ -251,3 +251,76 @@ class ReflexAgent(Agent):
 
         # Return the score of the successor game state
         return successor_game_state.score
+
+class MCTSAgent(Agent):
+    def __init__(self, simulations=1000):
+        super(MCTSAgent, self).__init__()
+        self.simulations = simulations
+
+    def get_action(self, game_state):
+        root = Node(game_state)
+
+        for _ in range(self.simulations):
+            node = self._select(root)
+            reward = self._simulate(node.state)
+            self._backpropagate(node, reward)
+
+        return self._best_child(root, exploration_constant=0).action
+
+    def _select(self, node):
+        while not node.state.done:
+            if not node.is_fully_expanded():
+                return self._expand(node)
+            else:
+                node = self._best_child(node)
+        return node
+
+    def _expand(self, node):
+        actions = node.state.get_legal_actions(agent_index=0)
+        for action in actions:
+            if action not in [child.action for child in node.children]:
+                next_state = node.state.generate_successor(action=action)
+                child_node = Node(next_state, parent=node, action=action)
+                node.children.append(child_node)
+                return child_node
+        raise Exception("Should never reach here")
+
+    def _simulate(self, state):
+        current_state = state
+        while not current_state.done:
+            legal_actions = current_state.get_legal_actions(agent_index=0)
+            action = random.choice(legal_actions)
+            current_state = current_state.generate_successor(action=action)
+        return current_state.score
+
+    def _backpropagate(self, node, reward):
+        while node is not None:
+            node.visits += 1
+            node.reward += reward
+            node = node.parent
+
+    def _best_child(self, node, exploration_constant=1.414):
+        best_value = float('-inf')
+        best_nodes = []
+        for child in node.children:
+            uct_value = (child.reward / child.visits) + exploration_constant * math.sqrt(math.log(node.visits) / child.visits)
+            if uct_value > best_value:
+                best_value = uct_value
+                best_nodes = [child]
+            elif uct_value == best_value:
+                best_nodes.append(child)
+        return random.choice(best_nodes)
+
+
+class Node:
+    def __init__(self, state, parent=None, action=None):
+        self.state = state
+        self.parent = parent
+        self.children = []
+        self.visits = 0
+        self.reward = 0
+        self.action = action
+
+    def is_fully_expanded(self):
+        return len(self.children) == len(self.state.get_legal_actions(agent_index=0))
+

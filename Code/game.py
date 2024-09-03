@@ -28,7 +28,6 @@ class Agent(object):
 
 class RandomOpponentAgent(Agent):
 
-
     def get_action(self, game_state):
         return OpponentAction
 

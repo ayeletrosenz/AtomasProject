@@ -46,7 +46,7 @@ class GameRunner(object):
 
 def main():
     initial_state = GameState()
-    agent = agents.ReflexAgent()
+    agent = agents.MCTSAgent()
     game_runner = GameRunner(agent=agent, sleep_between_actions= True)
     game_runner.new_game(initial_state)
     # pygame.quit()
