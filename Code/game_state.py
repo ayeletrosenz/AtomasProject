@@ -75,11 +75,11 @@ class GameState(object):
 
         if action_type == Action.PLACE_ATOM:
             clicked_mid = False
-            self._ring.place_atom(chosen_atom_index, midway_index, clicked_mid, False)
+            self._ring.place_atom(chosen_atom_index, midway_index, clicked_mid)
 
         elif action_type == Action.CONVERT_TO_PLUS:
             clicked_mid = True
-            self._ring.place_atom(chosen_atom_index, midway_index, clicked_mid, False)
+            self._ring.place_atom(chosen_atom_index, midway_index, clicked_mid)
 
     def generate_successor(self, agent_index=0, action=Action.STOP):
         successor = GameState(ring=self._ring.copy())

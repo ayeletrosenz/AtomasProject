@@ -316,7 +316,7 @@ class Ring:
     #         case _:
     #             self.normal_atoms(self.center_atom, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30))
 
-    def place_atom(self, chosen_atom_index, chosen_midway_index, clicked_mid, is_human_player = False):
+    def place_atom(self, chosen_atom_index, chosen_midway_index, clicked_mid):
         def check_game_end(self):
             '''Function to check if the player loses the game.
             '''
@@ -341,11 +341,20 @@ class Ring:
             # I put it in comment because the opponent is generating the inner atom now.
             # self.generate_inner()
 
+
         def find_symmetry_indices(atoms, pivot):
             atom_list = [atom.atom_number for atom in atoms]
             atom_indices = [i for i in range(len(atom_list))]
             n = len(atom_list)
 
+            # Special case: If there are only 2 atoms and they are the same, fuse them
+            if n == 2:
+                if atom_list[0] == atom_list[1]:  # If both atoms are the same
+                    return [(atom_list[0], atom_list[1])], [(0, 1)]  # Return fusion for both atoms
+                else:
+                    return [], []  # No fusion possible if they're not the same
+
+            # General case for more than 2 atoms
             atom_list.insert(pivot, "p")
             atom_indices.insert(pivot, "p")
             n = len(atom_list)
@@ -532,7 +541,7 @@ def print_move(game_state,action):
         clicked_mid = False
         if action_type == Action.CONVERT_TO_PLUS:
             clicked_mid = True
-        print("\n----------", game_state._ring.total_turns, "----------")
+        print("----------", game_state._ring.total_turns, "----------")
         print("Center atom: ", game_state._ring.center_atom.atom_number)
         print("Atoms: [", ", ".join(str(atom.atom_number) for atom in game_state._ring.atoms), "]")
         if clicked_mid:
@@ -542,5 +551,5 @@ def print_move(game_state,action):
                 print("Chosen atom index: ", chosen_atom_index)
             if midway_index != NO_SELECTION:
                 print("Chosen midway index: ", midway_index)
-        # print("Number of atoms: ", game_state._ring.atom_count)
+        # print("Number of atoms: ", game_state._ring.atom_count, ".")
 

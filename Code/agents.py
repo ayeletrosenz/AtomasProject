@@ -1,4 +1,5 @@
 
+import math
 import random
 from typing import Tuple, List
 import numpy as np
@@ -10,13 +11,13 @@ MINUS = -2
 NO_SELECTION = None
 SWITCH_TO_PLUS = (NO_SELECTION, NO_SELECTION, True)
 
-def choose_random(ring: 'Ring') -> int:
+def choose_random(ring) -> int:
     return random.randint(0, ring.atom_count - 1)
 
-def can_switch_to_plus(ring: 'Ring') -> Tuple[int, int]:
+def can_switch_to_plus(ring) -> Tuple[int, int]:
     return ring.turns_since_last_minus == 0 and ring.total_turns >= 1
 
-def lowest_atom(ring: 'Ring') -> int:
+def lowest_atom(ring) -> int:
     lowest_atom_number = float('inf')
     lowest_index = -1
     for index, atom in enumerate(ring.atoms):
@@ -25,7 +26,7 @@ def lowest_atom(ring: 'Ring') -> int:
             lowest_index = index
     return lowest_atom_number, lowest_index
 
-def second_highest_atom(ring: 'Ring') -> Tuple[int, int]:
+def second_highest_atom(ring) -> Tuple[int, int]:
     atom_vals = [atom.atom_number for atom in ring.atoms]
     max_val = max(atom_vals)
     second_highest_val = max([val for val in atom_vals if val != max_val])
@@ -57,13 +58,13 @@ def find_symmetry_indices(atoms, pivot) -> Tuple[List[Tuple[int, int]], List[Tup
             break
     return sym_numbers, sym_indices
 
-def calculate_chain_length(ring: 'Ring', i: int) -> int:
+def calculate_chain_length(ring, i: int) -> int:
     atoms = ring.atoms
     sym_numbers, sym_indices = find_symmetry_indices(atoms, i)
     chain_length = len(sym_indices) * 2 + 1 if sym_indices else 1
     return chain_length
 
-def find_longest_chain(ring: 'Ring') -> Tuple[int, int]:
+def find_longest_chain(ring) -> Tuple[int, int]:
     longest_chain_length = 0
     longest_chain_midway = None
     atom_count = ring.atom_count
@@ -76,7 +77,7 @@ def find_longest_chain(ring: 'Ring') -> Tuple[int, int]:
             
     return longest_chain_midway - 1, longest_chain_length
 
-def find_midway_next_to_plus(ring: 'Ring') -> int:
+def find_midway_next_to_plus(ring) -> int:
     atom_count = ring.atom_count
     center_atom = ring.center_atom.atom_number
     
@@ -90,16 +91,16 @@ def find_midway_next_to_plus(ring: 'Ring') -> int:
 
 # TODO it should find a longer chain, not the longest necessarily
 # TODO add Gabi's algorithm but make it return only if it finds something good
-def find_bigger_chain_midway(ring: 'Ring') -> int:
+def find_bigger_chain_midway(ring) -> int:
     atom_count = ring.atom_count
 
     for midway_index in range(atom_count):
         simulated_ring = ring.copy()
-        simulated_ring.place_atom(NO_SELECTION, midway_index, False, False)
+        simulated_ring.place_atom(NO_SELECTION, midway_index, False)
         if find_longest_chain(simulated_ring)[1] > find_longest_chain(ring)[1]:
             return midway_index
 
-def find_best_placement(ring: 'Ring') -> int:
+def find_best_placement(ring) -> int:
     closest_index = None
     closest_difference = float('inf')
     atom_count = ring.atom_count
@@ -114,7 +115,7 @@ def find_best_placement(ring: 'Ring') -> int:
             
     return closest_index if closest_index is not None else atom_count - 1
 
-def exists_chain_of_length(ring: 'Ring', length: int) -> bool:
+def exists_chain_of_length(ring, length: int) -> bool:
     """
     Check if there exists a chain of atoms in the ring that matches or exceeds a given length.
     """
@@ -127,7 +128,7 @@ def exists_chain_of_length(ring: 'Ring', length: int) -> bool:
     return False
 
 class AyeletAgent(Agent):
-    def get_action(self, game_state: 'GameState') -> Tuple[Action, int, int]:
+    def get_action(self, game_state) -> Tuple[Action, int, int]:
         ring = game_state.ring
         atom_count = ring.atom_count
         center_atom = ring.center_atom.atom_number
