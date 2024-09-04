@@ -15,7 +15,7 @@ class Action(Enum):
     PLACE_ATOM = 1
     CONVERT_TO_PLUS = 2
     STOP = 3
-NO_SELECTION = -1  # Indicates no atom was selected from the ring.
+NO_SELECTION = None  # Indicates no atom was selected from the ring.
 OpponentAction = "generate inner"
 
 
@@ -538,8 +538,9 @@ def print_move(game_state,action):
         if clicked_mid:
             print("Switched to plus")
         else:
-            if chosen_atom_index != -1:
+            if chosen_atom_index != NO_SELECTION:
                 print("Chosen atom index: ", chosen_atom_index)
-            if midway_index != -1:
+            if midway_index != NO_SELECTION:
                 print("Chosen midway index: ", midway_index)
+        # print("Number of atoms: ", game_state._ring.atom_count)
 
