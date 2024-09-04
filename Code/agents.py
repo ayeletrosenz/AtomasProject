@@ -9,7 +9,6 @@ from game import Agent, Action
 PLUS = -1
 MINUS = -2
 NO_SELECTION = None
-SWITCH_TO_PLUS = (NO_SELECTION, NO_SELECTION, True)
 
 def choose_random(ring) -> int:
     return random.randint(0, ring.atom_count - 1)
@@ -143,14 +142,13 @@ class AyeletAgent(Agent):
                 chosen_atom_index = second_highest_atom(ring)[1]
             return (Action.PLACE_ATOM, chosen_atom_index, NO_SELECTION)
 
-        # TODO gets stuck when there are 3 consecutibe pluses
         # TODO put it next to lower atoms
         elif center_atom == PLUS:
             # print("\nPLUS")
             chosen_midway_index, length = find_longest_chain(ring)
             # if there is a plus next to the chosen midway choose a random midwat
             if ring.atoms[(chosen_midway_index + 1) % atom_count].atom_number == PLUS or ring.atoms[chosen_midway_index].atom_number == PLUS:
-                return (Action.PLACE_ATOM, NO_SELECTION, choose_random(ring)) # TODO temporary fix
+                return (Action.PLACE_ATOM, NO_SELECTION, choose_random(ring))
             return (Action.PLACE_ATOM, NO_SELECTION, chosen_midway_index)
 
         else:
@@ -175,6 +173,30 @@ class AyeletAgent(Agent):
             # print("BEST PLACEMENT: ", best_placement_index)
             return (Action.PLACE_ATOM, NO_SELECTION, best_placement_index)
 
+
+class SmartRandomAgent(Agent):
+    def get_action(self, game_state) -> Tuple[Action, int, int]:
+        ring = game_state.ring
+        center_atom = ring.center_atom.atom_number
+        atom_count = ring.atom_count
+
+        if center_atom == MINUS:
+            return (Action.PLACE_ATOM, choose_random(ring), NO_SELECTION)
+        
+        elif center_atom == PLUS:
+            i = choose_random(ring)
+            for _ in range(atom_count):
+                if ring.atoms[i].atom_number == ring.atoms[(i+1)%atom_count].atom_number:
+                    return (Action.PLACE_ATOM, NO_SELECTION, i)
+                i = (i+1)%atom_count
+            return (Action.PLACE_ATOM, NO_SELECTION, choose_random(ring))
+        
+        else:
+            if can_switch_to_plus(ring) and random.random() < 0.5:
+                return (Action.CONVERT_TO_PLUS, NO_SELECTION, NO_SELECTION)
+            else:
+                return (Action.PLACE_ATOM, NO_SELECTION, choose_random(ring))
+            
 
 
 class ReflexAgent(Agent):
