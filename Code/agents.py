@@ -13,19 +13,26 @@ SWITCH_TO_PLUS = (NO_SELECTION, NO_SELECTION, True)
 def choose_random(ring: 'Ring') -> int:
     return random.randint(0, ring.atom_count - 1)
 
-def can_switch_to_plus(ring: 'Ring') -> bool:
+def can_switch_to_plus(ring: 'Ring') -> Tuple[int, int]:
     return ring.turns_since_last_minus == 0 and ring.total_turns >= 1
 
-def lowest_atom_index(ring: 'Ring') -> int:
+def lowest_atom(ring: 'Ring') -> int:
     lowest_atom_number = float('inf')
     lowest_index = -1
     for index, atom in enumerate(ring.atoms):
         if atom.atom_number != PLUS and atom.atom_number < lowest_atom_number:
             lowest_atom_number = atom.atom_number
             lowest_index = index
-    return lowest_index
+    return lowest_atom_number, lowest_index
 
-def find_symmetry_indices(atoms, pivot):
+def second_highest_atom(ring: 'Ring') -> Tuple[int, int]:
+    atom_vals = [atom.atom_number for atom in ring.atoms]
+    max_val = max(atom_vals)
+    second_highest_val = max([val for val in atom_vals if val != max_val])
+    second_highest_index = atom_vals.index(second_highest_val)
+    return second_highest_val, second_highest_index
+
+def find_symmetry_indices(atoms, pivot) -> Tuple[List[Tuple[int, int]], List[Tuple[int, int]]]:
     atom_list = [atom.atom_number for atom in atoms]
     atom_indices = [i for i in range(len(atom_list))]
     n = len(atom_list)
@@ -124,13 +131,19 @@ class AyeletAgent(Agent):
         ring = game_state.ring
         atom_count = ring.atom_count
         center_atom = ring.center_atom.atom_number
+        total_turns = ring.total_turns
 
         if center_atom == MINUS:
             # print("\nMINUS")
-            chosen_atom_index = lowest_atom_index(ring)
+            lowest_atom_value, lowest_atom_index = lowest_atom(ring)
+            if lowest_atom_value < (1 + total_turns // 40): # lowest atom no longer spawns
+                chosen_atom_index = lowest_atom_index
+            else:
+                chosen_atom_index = second_highest_atom(ring)[1]
             return (Action.PLACE_ATOM, chosen_atom_index, NO_SELECTION)
 
         # TODO gets stuck when there are 3 consecutibe pluses
+        # TODO put it next to lower atoms
         elif center_atom == PLUS:
             # print("\nPLUS")
             chosen_midway_index, length = find_longest_chain(ring)

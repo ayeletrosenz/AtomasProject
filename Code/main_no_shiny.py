@@ -406,8 +406,8 @@ class Ring:
 
                 new_fusions = []
                 for number, indice in zip(range(len(atom_list)), atom_indices):
-                    if atom_list[number] == -1:
-                        if atom_list[number-1] == atom_list[(number+1)%len(atom_list)]:
+                    if atom_list[number] == PLUS:
+                        if atom_list[number-1] == atom_list[(number+1)%len(atom_list)] and atom_list[number-1] > 0:
                             new_fusions.append(indice)
                             # print(atom_list[number-1], atom_list[number], atom_list[(number+1)%len(atom_list)])
                 # print(new_fusions)
@@ -442,63 +442,65 @@ class Ring:
                 use_minus(self)
 
         check_new_fusions(self)
-        
-    # def draw_outer(self, is_human_player=False):
-    #     if self.atom_count == 0:
-    #         return
 
-    #     def atom_ring_locations(r, n=100):
-    #         return [(SCREEN_WIDTH // 2 + math.cos(2*pi/n*x)*r, SCREEN_HEIGHT // 2 + 30 + math.sin(2*pi/n*x)*r) for x in range(0, n+1)]
+    """  
+    def draw_outer(self, is_human_player=False):
+        if self.atom_count == 0:
+            return
 
-    #     self.locations = atom_ring_locations(170, self.atom_count)
+        def atom_ring_locations(r, n=100):
+            return [(SCREEN_WIDTH // 2 + math.cos(2*pi/n*x)*r, SCREEN_HEIGHT // 2 + 30 + math.sin(2*pi/n*x)*r) for x in range(0, n+1)]
 
-    #     if is_human_player and pygame.mouse.get_focused():
-    #         if self.turns_since_last_minus == 0 and self.total_turns >= 1 and self.center_atom.symbol != "-":
-    #             if not clicked_mid:
-    #                 self.generate_placement_line()
-    #         else:
-    #             self.generate_placement_line()
+        self.locations = atom_ring_locations(170, self.atom_count)
 
-    #     for atom, location in zip(self.atoms, self.locations):
-    #         if atom.symbol == "+":
-    #             self.special_atoms("+", (218, 77, 57), location)
-    #         elif atom.symbol == "-":
-    #             self.special_atoms("-", (68, 119, 194), location)
-    #         else:
-    #             self.normal_atoms(atom, location)
+        if is_human_player and pygame.mouse.get_focused():
+            if self.turns_since_last_minus == 0 and self.total_turns >= 1 and self.center_atom.symbol != "-":
+                if not clicked_mid:
+                    self.generate_placement_line()
+            else:
+                self.generate_placement_line()
 
-    # def normal_atoms(self, atom, location):
-    #     '''Helper function to draw normal atoms.'''
-    #     atom_nb = atom.atom_number
-    #     atom_symbol = atom.symbol
-    #     atom_colour = atom.colour
+        for atom, location in zip(self.atoms, self.locations):
+            if atom.symbol == "+":
+                self.special_atoms("+", (218, 77, 57), location)
+            elif atom.symbol == "-":
+                self.special_atoms("-", (68, 119, 194), location)
+            else:
+                self.normal_atoms(atom, location)
 
-    #     pygame.draw.circle(screen, pygame.Color(atom_colour),
-    #                        (location[0], location[1]), 23)
+    def normal_atoms(self, atom, location):
+        '''Helper function to draw normal atoms.'''
+        atom_nb = atom.atom_number
+        atom_symbol = atom.symbol
+        atom_colour = atom.colour
 
-    #     text_atom_symbol = self.font.render(
-    #         atom_symbol, True, (255, 255, 255))
-    #     text_rect_symbol = text_atom_symbol.get_rect(
-    #         center=(location[0], location[1] - 7))
-    #     screen.blit(text_atom_symbol, text_rect_symbol)
+        pygame.draw.circle(screen, pygame.Color(atom_colour),
+                           (location[0], location[1]), 23)
 
-    #     text_atom_number = self.font.render(
-    #         str(atom_nb), True, (255, 255, 255))
-    #     text_rect_number = text_atom_number.get_rect(
-    #         center=(location[0], location[1] + 10))
-    #     screen.blit(text_atom_number, text_rect_number)
+        text_atom_symbol = self.font.render(
+            atom_symbol, True, (255, 255, 255))
+        text_rect_symbol = text_atom_symbol.get_rect(
+            center=(location[0], location[1] - 7))
+        screen.blit(text_atom_symbol, text_rect_symbol)
 
-    # def special_atoms(self, symbol, colour, location):
-    #     '''Helper function to draw special ("+") atoms.'''
+        text_atom_number = self.font.render(
+            str(atom_nb), True, (255, 255, 255))
+        text_rect_number = text_atom_number.get_rect(
+            center=(location[0], location[1] + 10))
+        screen.blit(text_atom_number, text_rect_number)
 
-    #     pygame.draw.circle(screen, colour,
-    #                        (location[0],location[1]), 23)
+    def special_atoms(self, symbol, colour, location):
+        '''Helper function to draw special ("+") atoms.'''
 
-    #     text_atom_symbol = self.font.render(
-    #         symbol, True, (255, 255, 255))
-    #     text_rect_symbol = text_atom_symbol.get_rect(
-    #         center=(location[0], location[1]))
-    #     screen.blit(text_atom_symbol, text_rect_symbol)
+        pygame.draw.circle(screen, colour,
+                           (location[0],location[1]), 23)
+
+        text_atom_symbol = self.font.render(
+            symbol, True, (255, 255, 255))
+        text_rect_symbol = text_atom_symbol.get_rect(
+            center=(location[0], location[1]))
+        screen.blit(text_atom_symbol, text_rect_symbol)
+    """
 
     def midway_points(self):
         '''Helper function to get the midway points between each atom.'''
@@ -540,52 +542,3 @@ def print_move(game_state,action):
             if midway_index != -1:
                 print("Chosen midway index: ", midway_index)
 
-# if __name__ == "__main__":
-#     background = Background()
-#     ring = Ring()
-#     ring.start_game()
-#
-#     # Decide if the game will be played by a human or an AI agent
-#     is_human_player = False  # Set to False for AI
-#     agent = SmartRandomAgent() if not is_human_player else None
-#
-#     run = True
-#     while run:
-#         background.draw()
-#
-#         # Handle events (only relevant if human is playing)
-#         if is_human_player:
-#             for event in pygame.event.get():
-#                 if event.type == pygame.QUIT:
-#                     run = False
-#
-#                 elif event.type == pygame.MOUSEBUTTONDOWN:
-#                     mouse_pos = pygame.mouse.get_pos()
-#                     chosen_atom_index = ring.closest_atom(mouse_pos)[1]
-#                     chosen_midway_index = ring.closest_midway(mouse_pos)[1]
-#                     clicked_mid = abs(math.dist((SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30), mouse_pos)) < 40
-#
-#                     # Human player makes a move
-#                     ring.place_atom(chosen_atom_index, chosen_midway_index, clicked_mid, is_human_player)
-#                     ring.total_turns += 1
-#
-#         else:
-#             # AI agent's turn (continuous, not tied to events)
-#             game_state = GameState(ring, ring.total_turns)
-#             chosen_atom_index, chosen_midway_index, clicked_mid = agent.choose_action(game_state)
-#             print_move(game_state, chosen_atom_index, chosen_midway_index, clicked_mid)
-#             ring.place_atom(chosen_atom_index, chosen_midway_index, clicked_mid, is_human_player)
-#             ring.total_turns += 1
-#
-#         # Update game state and draw
-#         ring.update_highest()
-#         ring.score.draw(ring.highest_atom)
-#         ring.update_atom_count()
-#
-#         ring.draw_outer()
-#         ring.draw_inner()
-#
-#         pygame.display.flip()
-#         clock.tick(5)
-#
-#     pygame.quit()

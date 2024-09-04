@@ -5,7 +5,8 @@ import pygame
 from game import Game, RandomOpponentAgent
 from game_state import GameState
 import main_no_shiny
-import agents
+from agents import AyeletAgent
+from ExpectimaxAgent import ExpectimaxAgent
 
 
 class GameRunner(object):
@@ -45,7 +46,7 @@ class GameRunner(object):
 
 def main():
     initial_state = GameState()
-    agent = agents.ReflexAgent()
+    agent = AyeletAgent()
     game_runner = GameRunner(agent=agent, sleep_between_actions= True)
     game_runner.new_game(initial_state)
     # pygame.quit()
