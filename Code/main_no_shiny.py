@@ -320,7 +320,7 @@ class Ring:
         def check_game_end(self):
             '''Function to check if the player loses the game.
             '''
-            if( self.atom_count >= self.max_atoms):
+            if( self.atom_count > self.max_atoms):
                 for atom in self.atoms:
                     if atom.atom_number >= 1:
                         self.score.update(atom.atom_number)
@@ -389,6 +389,7 @@ class Ring:
         def use_minus(self):
             closest_atom_index = chosen_atom_index
             self.center_atom = self.atoms.pop(closest_atom_index)
+            self.update_atom_count()
 
         def convert_to_plus(self):
             self.center_atom = Atom()

@@ -5,7 +5,7 @@ import pygame
 from game import Game, RandomOpponentAgent
 from game_state import GameState
 import main_no_shiny
-from agents import AyeletAgent
+from agents import AyeletAgent, ReflexAgent
 from ExpectimaxAgent import ExpectimaxAgent
 
 
