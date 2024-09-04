@@ -89,7 +89,6 @@ def find_midway_next_to_plus(ring) -> int:
     return None
 
 # TODO it should find a longer chain, not the longest necessarily
-# TODO add Gabi's algorithm but make it return only if it finds something good
 def find_bigger_chain_midway(ring) -> int:
     atom_count = ring.atom_count
 
@@ -132,46 +131,90 @@ class AyeletAgent(Agent):
         atom_count = ring.atom_count
         center_atom = ring.center_atom.atom_number
         total_turns = ring.total_turns
+        min_spawning_atom = 1 + total_turns // 40
 
         if center_atom == MINUS:
-            # print("\nMINUS")
-            lowest_atom_value, lowest_atom_index = lowest_atom(ring)
-            if lowest_atom_value < (1 + total_turns // 40): # lowest atom no longer spawns
-                chosen_atom_index = lowest_atom_index
-            else:
-                chosen_atom_index = second_highest_atom(ring)[1]
-            return (Action.PLACE_ATOM, chosen_atom_index, NO_SELECTION)
+            return self.handle_minus_atom(ring, min_spawning_atom)
 
-        # TODO put it next to lower atoms
         elif center_atom == PLUS:
-            # print("\nPLUS")
-            chosen_midway_index, length = find_longest_chain(ring)
-            # if there is a plus next to the chosen midway choose a random midwat
-            if ring.atoms[(chosen_midway_index + 1) % atom_count].atom_number == PLUS or ring.atoms[chosen_midway_index].atom_number == PLUS:
-                return (Action.PLACE_ATOM, NO_SELECTION, choose_random(ring))
-            return (Action.PLACE_ATOM, NO_SELECTION, chosen_midway_index)
+            return self.handle_plus_atom(ring, atom_count)
 
         else:
-            # print("\nREGULAR")
-            if can_switch_to_plus(ring) and (
-                (atom_count > 10 and exists_chain_of_length(ring, 4)) or
-                (atom_count > 14 and exists_chain_of_length(ring, 2))):
-                # print("SWITCH TO PLUS")
-                return (Action.CONVERT_TO_PLUS, NO_SELECTION, NO_SELECTION)
+            return self.handle_regular_atom(ring, atom_count)
 
-            midway_next_to_plus = find_midway_next_to_plus(ring)
-            if midway_next_to_plus is not None:
-                # print("MIDWAY NEXT TO PLUS")
-                return (Action.PLACE_ATOM, NO_SELECTION, midway_next_to_plus)
 
-            bigger_chain_midway = find_bigger_chain_midway(ring)
-            if bigger_chain_midway is not None:
-                # print("BIGGER CHAIN MIDWAY")
-                return (Action.PLACE_ATOM, NO_SELECTION, bigger_chain_midway)
+    def handle_minus_atom(self, ring, min_spawning_atom) -> Tuple[Action, int, int]:
+        """Handles logic when center atom is MINUS."""
+        lowest_atom_value, lowest_atom_index = lowest_atom(ring)
+        
+        if lowest_atom_value < min_spawning_atom:
+            chosen_atom_index = lowest_atom_index
+        else:
+            chosen_atom_index = second_highest_atom(ring)[1]
+        
+        return (Action.PLACE_ATOM, chosen_atom_index, NO_SELECTION)
 
-            best_placement_index = find_best_placement(ring)
-            # print("BEST PLACEMENT: ", best_placement_index)
-            return (Action.PLACE_ATOM, NO_SELECTION, best_placement_index)
+
+    def handle_plus_atom(self, ring, atom_count) -> Tuple[Action, int, int]:
+        """Handles logic when center atom is PLUS."""
+        chosen_midway_index, longest_chain_length = find_longest_chain(ring)
+        # Check if there is a plus next to the chosen midway
+        if longest_chain_length < 2 or self.is_plus_nearby(ring, chosen_midway_index, atom_count):
+            return self.place_random_near_spawning_atoms(ring, atom_count)
+        return (Action.PLACE_ATOM, NO_SELECTION, chosen_midway_index)
+
+
+    def handle_regular_atom(self, ring, atom_count) -> Tuple[Action, int, int]:
+        """Handles logic when the center atom is neither PLUS nor MINUS."""
+        if can_switch_to_plus(ring) and (
+            (atom_count > 10 and exists_chain_of_length(ring, 4)) or
+            (atom_count > 14 and exists_chain_of_length(ring, 2))):
+            return (Action.CONVERT_TO_PLUS, NO_SELECTION, NO_SELECTION)
+
+        midway_next_to_plus = find_midway_next_to_plus(ring)
+        if midway_next_to_plus is not None:
+            return (Action.PLACE_ATOM, NO_SELECTION, midway_next_to_plus)
+
+        bigger_chain_midway = find_bigger_chain_midway(ring)
+        if bigger_chain_midway is not None:
+            return (Action.PLACE_ATOM, NO_SELECTION, bigger_chain_midway)
+
+        best_placement_index = find_best_placement(ring)
+        return (Action.PLACE_ATOM, NO_SELECTION, best_placement_index)
+
+
+    def is_plus_nearby(self, ring, chosen_midway_index, atom_count) -> bool:
+        """Checks if there is a PLUS atom near the chosen midway."""
+        return (ring.atoms[(chosen_midway_index + 1) % atom_count].atom_number == PLUS or
+                ring.atoms[chosen_midway_index].atom_number == PLUS)
+    
+    def is_spawing(self, ring, atom_number):
+        total_turns = ring.total_turns
+        min_spawning_atom = 1 + total_turns // 40
+        max_spawning_atom = 3 + total_turns // 40
+        return atom_number >= min_spawning_atom and atom_number <= max_spawning_atom
+
+
+    def place_random_near_spawning_atoms(self, ring, atom_count) -> Tuple[Action, int, int]:
+        """Finds a random placement midway between two spawning atoms, or chooses randomly if none found."""
+        print("Placing random near spawning atoms")
+        i = choose_random(ring)
+        # First look for a midway where both neighbors are below spawning limit
+        for _ in range(atom_count):
+            if (self.is_spawing(ring, ring.atoms[i].atom_number) and 
+                    self.is_spawing(ring, ring.atoms[(i + 1) % atom_count].atom_number)):
+                return (Action.PLACE_ATOM, NO_SELECTION, i)
+            i = (i + 1) % atom_count
+        # Then look for a midway where at least one neighbor is below spawning limit
+        i = choose_random(ring)
+        for _ in range(atom_count):
+            if (self.is_spawing(ring, ring.atoms[i].atom_number) or 
+                    self.is_spawing(ring, ring.atoms[(i + 1) % atom_count].atom_number)):
+                return (Action.PLACE_ATOM, NO_SELECTION, i)
+            i = (i + 1) % atom_count
+
+        # If no suitable midway found, choose randomly
+        return (Action.PLACE_ATOM, NO_SELECTION, choose_random(ring))
 
 
 class SmartRandomAgent(Agent):
