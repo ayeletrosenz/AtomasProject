@@ -33,13 +33,14 @@ class RandomOpponentAgent(Agent):
 
 
 class Game(object):
-    def __init__(self, agent, opponent_agent, display=None, sleep_between_actions=False):
+    def __init__(self, agent, opponent_agent, display=None, sleep_between_actions=False, print_move = True):
         super(Game, self).__init__()
         self.sleep_between_actions = sleep_between_actions
         self.agent = agent
         self.opponent_agent = opponent_agent
         self._state = None
         self._should_quit = False
+        self.print_move = print_move
 
     def run(self, initial_state):
         self._should_quit = False
@@ -65,7 +66,10 @@ class Game(object):
             action = self.agent.get_action(self._state)
             if action == Action.STOP:
                 return
-            main_no_shiny.print_move(self._state,action)
+            if self.print_move:
+                main_no_shiny.print_move(self._state, action)
+            if self._state._ring.check_game_end():
+                self.quit()
             self._state.apply_action(action)
             opponent_action = self.opponent_agent.get_action(self._state)
             self._state.apply_opponent_action(opponent_action)
