@@ -4,6 +4,7 @@ import os
 import pygame
 from game import Game, RandomOpponentAgent
 from game_state import GameState
+import MCTSagent
 import ExpectimaxAgent
 import main_no_shiny
 import agents
@@ -47,7 +48,8 @@ class GameRunner(object):
 def main():
     num_of_games = 1
     # agent = ExpectimaxAgent.ExpectimaxAgent()
-    agent = agents.ReflexAgent()
+    # agent = agents.ReflexAgent()
+    agent = MCTSagent.MCTSAgent(simulations=300)
 
     total_score = 0
     highest_score = 0
@@ -55,7 +57,7 @@ def main():
     initial_state = None
     for i in range(num_of_games):
 
-        game_runner = GameRunner(agent=agent, sleep_between_actions=True,print_move = False)
+        game_runner = GameRunner(agent=agent, sleep_between_actions=True,print_move = True)
         score, highest_atom = game_runner.new_game(initial_state)
 
         # Track the total score for average calculation
