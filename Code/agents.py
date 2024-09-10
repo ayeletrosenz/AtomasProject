@@ -3,6 +3,7 @@ from typing import Tuple, List, Dict
 import numpy as np
 import abc
 from game import Agent, Action
+import math
 
 PLUS = -1
 MINUS = -2

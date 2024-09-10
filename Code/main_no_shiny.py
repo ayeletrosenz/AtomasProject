@@ -25,9 +25,6 @@ SCREEN_HEIGHT = 700
 PLUS = -1
 MINUS = -2
 
-# pygame.display.set_caption('Atomas')
-# screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-# clock = pygame.time.Clock()
 with open(r"atom_data.json", "r") as f:
     atom_data = json.load(f)
         
@@ -330,19 +327,6 @@ class Ring:
             return True
         return False
     def place_atom(self, chosen_atom_index, chosen_midway_index, clicked_mid):
-        def check_game_end(self):
-            '''Function to check if the player loses the game.
-            '''
-            if( self.atom_count > self.max_atoms):
-                for atom in self.atoms:
-                    if atom.atom_number >= 1:
-                        self.score.update(atom.atom_number)
-
-                print("\nGame over")
-                print("Score:", self.score.score)
-                print("Highest atom:", self.highest_atom)
-                # pygame.quit()
-                # exit()
 
         def place_normal(self):
             '''Function to place a non-special atom.'''
@@ -439,8 +423,7 @@ class Ring:
                 del self.atoms[new_fusions[0]]
                 use_plus(self, new_fusions[0])
         
-        # check if player loses when they play an atom
-        # check_game_end(self)
+
 
         turn_played = False
         # print("--------------")
@@ -467,7 +450,7 @@ class Ring:
         check_new_fusions(self)
 
 
-    def draw_outer(self, screen,is_human_player=False):
+    def draw_outer(self, screen, clicked_mid = False, is_human_player=False):
         if self.atom_count == 0:
             return
 

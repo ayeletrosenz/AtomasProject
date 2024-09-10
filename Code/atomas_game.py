@@ -3,6 +3,7 @@ import pygame
 from game import Game, RandomOpponentAgent
 from game_state import GameState
 from agents import  AyeletAgent, ReflexAgent, MCTSAgent, ExpectimaxAgent
+import MCTSagent
 
 class GameRunner(object):
     def __init__(self, agent=None, sleep_between_actions=False, print_move=True, display=None):
@@ -34,9 +35,9 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description='Run Atomas game with different options.')
     parser.add_argument('--num_of_games', type=int, default=1, help='Number of games to run')
     parser.add_argument('--display', type=bool, default=True, help='Whether to display the game window (True/False)')
-    parser.add_argument('--sleep_between_actions', help='Should sleep between actions.', default=False, type=bool)
+    parser.add_argument('--sleep_between_actions', help='Should sleep between actions.', default=True, type=bool)
     parser.add_argument('--print_move', type=bool, default=True, help='Whether to print each move (True/False)')
-    parser.add_argument('--agent', type=str, default='mcts', help='Type of agent to use [ayelet , reflex , mcts, expectimax]')
+    parser.add_argument('--agent', type=str, default='expectimax', help='Type of agent to use [ayelet , reflex , mcts, expectimax]')
     parser.add_argument('--depth', type=int, default=2, help='Depth of the Expectimax search.')
     parser.add_argument('--simulations', type=int, default=1000, help='number of simulations of the MCTS agent.')
     return parser.parse_args()
@@ -65,12 +66,22 @@ def main():
     num_of_games = args.num_of_games
     agent = agent_builder(agent_type=args.agent, depth=args.depth, simulations=args.simulations)
 
+    # Informative printings about agent type and number of games
+    print(f"Running {num_of_games} game(s) with agent type: {args.agent}")
+    if args.agent == 'expectimax':
+        print(f"Expectimax agent with depth: {args.depth}")
+    elif args.agent == 'mcts':
+        print(f"MCTS agent with {args.simulations} simulations")
+
     total_score = 0
     highest_score = 0
     highest_atom_achieved = 0
     initial_state = None
 
     for i in range(num_of_games):
+        # Informative print about the current game
+        print(f"\nStarting game {i + 1} of {num_of_games}...")
+
         # Pass the display surface to GameRunner
         game_runner = GameRunner(agent=agent, sleep_between_actions=args.sleep_between_actions,
                                  print_move=args.print_move, display=args.display)
@@ -98,7 +109,6 @@ def main():
 
     if args.display:
         pygame.quit()
-
 
 if __name__ == '__main__':
     main()
