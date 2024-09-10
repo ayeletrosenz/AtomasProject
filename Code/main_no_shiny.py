@@ -35,7 +35,7 @@ with open(r"atom_data.json", "r") as f:
 class Score:
     def __init__(self):
         self.score = 0
-        # self.base_font = pygame.font.Font(None, 32)
+        self.base_font = pygame.font.Font(None, 32)
         self.score_location = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 6)
         self.score_name_location = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 6 + 30)
 
@@ -53,28 +53,28 @@ class Score:
     def update(self, amount):
         self.score += amount
 
-    # def draw(self, atom_nb):
-    #     '''Draws the score and the name of the highest scoring atom. 
-    #     The text colour of the name of the atom is based on the atom itself.'''    
-    #     def draw_num_score():
-    #         text_surface = self.base_font.render(
-    #             str(self.score), True, (255, 255, 255))
-    #         text_rect = text_surface.get_rect(
-    #             center=self.score_location)
-    #         screen.blit(text_surface, text_rect)
+    def draw(self, atom_nb, screen):
+        '''Draws the score and the name of the highest scoring atom.
+        The text colour of the name of the atom is based on the atom itself.'''
+        def draw_num_score():
+            text_surface = self.base_font.render(
+                str(self.score), True, (255, 255, 255))
+            text_rect = text_surface.get_rect(
+                center=self.score_location)
+            screen.blit(text_surface, text_rect)
 
-    #     def draw_atom_name(atom_nb):
-    #         atom_nb = str(atom_nb)
-    #         atom_name = atom_data['Name'][str(int(atom_nb)-1)]
-    #         atom_colour = atom_data['Color'][str(int(atom_nb)-1)]
-    #         text_surface = self.base_font.render(
-    #             atom_name, True, atom_colour)
-    #         text_rect = text_surface.get_rect(
-    #             center=self.score_name_location)
-    #         screen.blit(text_surface, text_rect)
+        def draw_atom_name(atom_nb):
+            atom_nb = str(atom_nb)
+            atom_name = atom_data['Name'][str(int(atom_nb)-1)]
+            atom_colour = atom_data['Color'][str(int(atom_nb)-1)]
+            text_surface = self.base_font.render(
+                atom_name, True, atom_colour)
+            text_rect = text_surface.get_rect(
+                center=self.score_name_location)
+            screen.blit(text_surface, text_rect)
 
-    #     draw_num_score()
-    #     draw_atom_name(atom_nb)
+        draw_num_score()
+        draw_atom_name(atom_nb)
 
     def calc_chain_score(self,ring , sym, sym_indices, atoms):
         '''Calculates the score of a chain of atoms.'''
@@ -141,19 +141,19 @@ class Score:
         # print("Score:", score_increase)
 
 
-# class Background:
-#     def __init__(self):
-#         self.BACKGROUND_COLOR = (82, 42, 50)
-#         self.RING_COLOUR = (133, 94, 97)
-#         self.ATOM_RING_CENTER = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30)
+class Background:
+    def __init__(self):
+        self.BACKGROUND_COLOR = (82, 42, 50)
+        self.RING_COLOUR = (133, 94, 97)
+        self.ATOM_RING_CENTER = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30)
 
-#     def draw(self):
-#         '''Draws the background as well as the ring surrouding the atoms.'''
-#         screen.fill(self.BACKGROUND_COLOR)
-#         pygame.draw.circle(screen, self.RING_COLOUR,
-#                            self.ATOM_RING_CENTER, 190)
-#         pygame.draw.circle(screen, self.BACKGROUND_COLOR,
-#                            self.ATOM_RING_CENTER, 187)
+    def draw(self, screen):
+        '''Draws the background as well as the ring surrouding the atoms.'''
+        screen.fill(self.BACKGROUND_COLOR)
+        pygame.draw.circle(screen, self.RING_COLOUR,
+                           self.ATOM_RING_CENTER, 190)
+        pygame.draw.circle(screen, self.BACKGROUND_COLOR,
+                           self.ATOM_RING_CENTER, 187)
         
 
 class Atom:
@@ -194,7 +194,7 @@ class Ring:
         self.atoms = []
         self.score = Score()
         self.center_atom = ""
-        # self.font = pygame.font.Font(None, 25)
+        self.font = pygame.font.Font(None, 25)
         self.locations = []
 
         self.total_turns = 1
@@ -218,7 +218,7 @@ class Ring:
         new_ring.atoms = copy.deepcopy(self.atoms)  # Deep copy the list of atoms
         new_ring.score = self.score.copy()  # Assuming Score class has a copy method
         new_ring.center_atom = copy.deepcopy(self.center_atom)  # Deep copy the center atom
-        # new_ring.font = self.font  # Font can be shallow copied (immutable)
+        new_ring.font = self.font  # Font can be shallow copied (immutable)
         new_ring.locations = copy.deepcopy(self.locations)  # Deep copy the list of locations
         new_ring.total_turns = self.total_turns
         new_ring.turns_since_last_plus = self.turns_since_last_plus
@@ -302,19 +302,19 @@ class Ring:
         self.turns_since_last_plus += 1
         self.turns_since_last_minus += 1
 
-    # def draw_inner(self):
-    #     '''Function to draw the atom in the center of the ring.
-    #     The one that the player can place next.'''
+    def draw_inner(self, screen):
+        '''Function to draw the atom in the center of the ring.
+        The one that the player can place next.'''
 
-    #     match self.center_atom.symbol:
-    #         case "":
-    #             return
-    #         case "+":
-    #             self.special_atoms("+", (218, 77, 57), (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30))
-    #         case "-":
-    #             self.special_atoms("-", (68, 119, 194), (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30))
-    #         case _:
-    #             self.normal_atoms(self.center_atom, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30))
+        match self.center_atom.symbol:
+            case "":
+                return
+            case "+":
+                self.special_atoms("+", (218, 77, 57), (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30), screen)
+            case "-":
+                self.special_atoms("-", (68, 119, 194), (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30), screen)
+            case _:
+                self.normal_atoms(self.center_atom, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30), screen)
     def check_game_end(self):
         '''Function to check if the player loses the game.
         '''
@@ -466,8 +466,8 @@ class Ring:
 
         check_new_fusions(self)
 
-    """  
-    def draw_outer(self, is_human_player=False):
+
+    def draw_outer(self, screen,is_human_player=False):
         if self.atom_count == 0:
             return
 
@@ -485,13 +485,13 @@ class Ring:
 
         for atom, location in zip(self.atoms, self.locations):
             if atom.symbol == "+":
-                self.special_atoms("+", (218, 77, 57), location)
+                self.special_atoms("+", (218, 77, 57), location,screen)
             elif atom.symbol == "-":
-                self.special_atoms("-", (68, 119, 194), location)
+                self.special_atoms("-", (68, 119, 194), location,screen)
             else:
-                self.normal_atoms(atom, location)
+                self.normal_atoms(atom, location, screen)
 
-    def normal_atoms(self, atom, location):
+    def normal_atoms(self, atom, location, screen):
         '''Helper function to draw normal atoms.'''
         atom_nb = atom.atom_number
         atom_symbol = atom.symbol
@@ -512,7 +512,7 @@ class Ring:
             center=(location[0], location[1] + 10))
         screen.blit(text_atom_number, text_rect_number)
 
-    def special_atoms(self, symbol, colour, location):
+    def special_atoms(self, symbol, colour, location,screen):
         '''Helper function to draw special ("+") atoms.'''
 
         pygame.draw.circle(screen, colour,
@@ -523,7 +523,7 @@ class Ring:
         text_rect_symbol = text_atom_symbol.get_rect(
             center=(location[0], location[1]))
         screen.blit(text_atom_symbol, text_rect_symbol)
-    """
+
 
     def midway_points(self):
         '''Helper function to get the midway points between each atom.'''
@@ -538,7 +538,7 @@ class Ring:
         distances = [[[self.locations[i], abs(math.dist(self.locations[i], mouse_pos))], i] for i in range(len(self.locations))]
         return min(distances, key=lambda x: x[0][1])
 
-    def generate_placement_line(self):
+    def generate_placement_line(self, screen):
         mouse_pos = pygame.mouse.get_pos()
 
         if self.center_atom.symbol == "-":
@@ -546,7 +546,7 @@ class Ring:
         else:
             closest_point = self.closest_midway(mouse_pos)[0][0]
 
-        # pygame.draw.line(screen, (0, 0, 0), (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30), closest_point)
+        pygame.draw.line(screen, (0, 0, 0), (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30), closest_point)
 
         
 def print_move(game_state,action):
