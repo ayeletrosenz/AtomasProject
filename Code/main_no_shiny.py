@@ -437,11 +437,12 @@ class Ring:
         # print("Current middle atom: ", self.center_atom.atom_number, self.center_atom.symbol)
 
         # check if player has clicked on an atom grabbed by a minus atom to convert it to a plus atom
+
         if self.center_atom.special == False:
             if (self.turns_since_last_minus == 0 and self.total_turns >= 1 and clicked_mid): # there was just a minus
                 convert_to_plus(self)
                 turn_played = True
-                return 
+                return
             place_normal(self)
             turn_played = True
 
@@ -450,7 +451,7 @@ class Ring:
                 place_normal(self)
             elif self.center_atom.symbol == "+" and self.atom_count > 1:
                 # print("here", self.center_atom.symbol)
-                use_plus(self) 
+                use_plus(self)
             elif self.center_atom.symbol == "-":
                 use_minus(self)
 

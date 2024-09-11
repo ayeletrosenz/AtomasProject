@@ -2,8 +2,9 @@ import argparse
 import pygame
 from game import Game, RandomOpponentAgent
 from game_state import GameState
-from agents import AyeletAgent, ReflexAgent, MCTSAgent, ExpectimaxAgent
-import MCTSagent
+from agents import AyeletAgent, ReflexAgent, ExpectimaxAgent, SmartRandomAgent
+from agents import score_evaluation_function, highest_atom_evaluation_function
+from MCTSagent import MCTSAgent
 
 class GameRunner(object):
     def __init__(self, agent=None, sleep_between_actions=False, print_move=True, display=None):
@@ -37,13 +38,14 @@ def parse_arguments():
     parser.add_argument('--display', type=bool, default=True, help='Whether to display the game window (True/False)')
     parser.add_argument('--sleep_between_actions', help='Should sleep between actions.', default=True, type=bool)
     parser.add_argument('--print_move', type=bool, default=True, help='Whether to print each move (True/False)')
-    parser.add_argument('--agent', type=str, default='expectimax', help='Type of agent to use [ayelet , reflex , mcts, expectimax]')
+    parser.add_argument('--agent', type=str, choices=['random', 'ayelet', 'reflex', 'mcts', 'expectimax'], default='expectimax', help='Type of agent to use [random, ayelet, reflex, mcts, expectimax]')
     parser.add_argument('--depth', type=int, default=2, help='Depth of the Expectimax search.')
-    parser.add_argument('--simulations', type=int, default=1000, help='number of simulations of the MCTS agent.')
+    parser.add_argument('--simulations', type=int, default=200, help='Number of simulations of the MCTS agent.')
+    parser.add_argument('--priority', type=str, choices=['score', 'highest_atom'], default='score', help='Priority for the Expectimax agent: "score" or "highest_atom"')
     return parser.parse_args()
 
-
-def agent_builder(agent_type, depth, simulations):
+def agent_builder(agent_type, depth, simulations, priority):
+    evaluation_function = None
     if agent_type == 'ayelet':
         agent = AyeletAgent()
     elif agent_type == 'reflex':
@@ -51,7 +53,14 @@ def agent_builder(agent_type, depth, simulations):
     elif agent_type == 'mcts':
         agent = MCTSAgent(simulations=simulations)
     elif agent_type == 'expectimax':
-        agent = ExpectimaxAgent(depth=depth)
+        # Set the evaluation function based on the priority argument
+        if priority == 'score':
+            evaluation_function = score_evaluation_function
+        elif priority == 'highest_atom':
+            evaluation_function = highest_atom_evaluation_function
+        agent = ExpectimaxAgent(depth=depth, evaluation_function=evaluation_function)
+    elif agent_type == 'random':
+        agent = SmartRandomAgent()
     else:
         raise ValueError(f"Unknown agent type: {agent_type}")
     return agent
@@ -64,13 +73,12 @@ def main():
         pygame.init()
 
     num_of_games = args.num_of_games
-    # agent = agent_builder(agent_type=args.agent, depth=args.depth, simulations=args.simulations)
-    agent = MCTSAgent()
+    agent = agent_builder(agent_type=args.agent, depth=args.depth, simulations=args.simulations, priority=args.priority)
 
     # Informative printings about agent type and number of games
     print(f"Running {num_of_games} game(s) with agent type: {args.agent}")
     if args.agent == 'expectimax':
-        print(f"Expectimax agent with depth: {args.depth}")
+        print(f"Expectimax agent with depth: {args.depth} and prioritize {args.priority}")
     elif args.agent == 'mcts':
         print(f"MCTS agent with {args.simulations} simulations")
 

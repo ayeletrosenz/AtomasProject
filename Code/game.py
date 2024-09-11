@@ -60,20 +60,26 @@ class Game(object):
 
     def _game_loop(self):
         while not self._should_quit:
-            # Handle Pygame events (e.g., quitting the game) only if display is enabled
             if self.display:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         self.quit()
-
-                # Draw the background
-                self.screen.fill((0, 0, 0))  # Optional if background is not fully covering
+                self.screen.fill((0, 0, 0))
                 self.background.draw(self.screen)
 
             if self.sleep_between_actions:
-                time.sleep(1)  # Slow down for visual clarity
+                time.sleep(1)
 
-            # Get the action from the agent and apply it to the game state
+            # Check if the game has ended
+            if self._state.ring.check_game_end():
+                print(self._state.done)
+                final_score = self._state._ring.score
+                highest_atom = self._state._ring.highest_atom
+                self.quit()
+                self._show_end_screen(final_score, highest_atom)
+                return final_score, highest_atom
+
+            # Get the action from the agent
             action = self.agent.get_action(self._state)
             if action == Action.STOP:
                 self.quit()
@@ -82,34 +88,26 @@ class Game(object):
             if self.print_move:
                 main_no_shiny.print_move(self._state, action)
 
-            # Check if the game has ended
-            if self._state.ring.check_game_end():
-                print(self._state.done)
-                final_score = self._state.ring.score
-                highest_atom = self._state.ring.highest_atom
-                self.quit()
-                self._show_end_screen(final_score, highest_atom)
-                return final_score, highest_atom
-
-            # Apply the player's action and opponent's action
+            # Apply the player's action
             self._state.apply_action(action)
-            opponent_action = self.opponent_agent.get_action(self._state)
-            self._state.apply_opponent_action(opponent_action)
 
-            # Update game state details (score, highest atom, etc.)
+            # If there are no pending actions, proceed with the opponent's turn
+            if self._state.pending_minus_action is None:
+                opponent_action = self.opponent_agent.get_action(self._state)
+                self._state.apply_opponent_action(opponent_action)
+
+            # Update game state details
             self._state._ring.total_turns += 1
             self._state._ring.update_highest()
             self._state._ring.update_atom_count()
 
-            # Draw the updated game state only if display is enabled
             if self.display:
                 self._state._ring.draw_outer(self.screen)
                 self._state._ring.draw_inner(self.screen)
                 self._state._ring.score.draw(self._state._ring.highest_atom, self.screen)
 
-                # Update the display and control the frame rate
                 pygame.display.flip()
-                self.clock.tick(30)  # Set the frame rate (adjust as needed)
+                self.clock.tick(30)
 
         return self._state._ring.score, self._state._ring.highest_atom  # Return final score and highest atom
 
