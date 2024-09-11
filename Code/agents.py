@@ -511,8 +511,47 @@ def score_evaluation_function( state):
         return score
 
 def highest_atom_evaluation_function(state):
-        score = 0
-        return score
+    score = state.highest_atom * 10000
+
+    # Extract information from the ring
+    atoms = state._ring.atoms  # Get the list of atoms in the ring
+    atom_weights = [atom.atom_number for atom in atoms]  # Get their weights
+    chains = get_chains(atoms)  # Get chains of consecutive similar atoms
+
+    # Calculate the lengths of all chains
+    chain_lengths = [len(chain) for chain in chains]
+
+    # Determine the longest and second longest chain lengths
+    if len(chain_lengths) > 0:
+        chain_lengths.sort(reverse=True)
+        longest_chain_length = chain_lengths[0]
+        # Use 0 if there's no second chain to avoid indexing errors
+        second_longest_chain_length = chain_lengths[1] if len(chain_lengths) > 1 else 0
+
+        # Score for the longest chain (e.g., give it a weight of 1000)
+        score += longest_chain_length * 1000
+
+        # Score for the second longest chain (e.g., 10% of the longest chain's score)
+        score += second_longest_chain_length * 100
+
+    # 2. Favor states where atoms of similar weights are adjacent, excluding special atoms
+    for i in range(len(atoms) - 1):
+        atom_current = atoms[i]
+        atom_next = atoms[i + 1]
+        if not atom_current.special and not atom_next.special:  # Only consider non-special atoms
+            if abs(atom_current.atom_number - atom_next.atom_number) <= 1:
+                score += 200  # Bonus for adjacent similar atoms
+            elif abs(atom_current.atom_number - atom_next.atom_number) <= 2:
+                score += 100  # Bonus for maintaining light-to-heavy order
+            else:
+                score -= 50  # Penalize bad arrangements
+
+    # 3. Penalty for the number of atoms in the ring
+    atom_count = len(atoms)
+    penalty_for_atom_count = atom_count * 10000  # Apply a penalty per atom in the ring
+    score -= penalty_for_atom_count
+
+    return score
 def get_chains( atoms):
         """
         Finds all symmetric chains in the list of atoms, considering the circular nature of the ring.
