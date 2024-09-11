@@ -36,16 +36,22 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description='Run Atomas game with different options.')
     parser.add_argument('--num_of_games', type=int, default=1, help='Number of games to run')
     parser.add_argument('--display', type=bool, default=True, help='Whether to display the game window (True/False)')
-    parser.add_argument('--sleep_between_actions', help='Should sleep between actions.', default=True, type=bool)
+    parser.add_argument('--sleep_between_actions', help='Should sleep between actions.', default=False, type=bool)
     parser.add_argument('--print_move', type=bool, default=True, help='Whether to print each move (True/False)')
-    parser.add_argument('--agent', type=str, choices=['random', 'ayelet', 'reflex', 'mcts', 'expectimax'], default='expectimax', help='Type of agent to use [random, ayelet, reflex, mcts, expectimax]')
+    parser.add_argument('--agent', type=str, choices=['random', 'ayelet', 'reflex', 'mcts', 'expectimax'], default='expectimax',
+                        help='Type of agent to use [random, ayelet, reflex, mcts, expectimax]')
     parser.add_argument('--depth', type=int, default=2, help='Depth of the Expectimax search.')
     parser.add_argument('--simulations', type=int, default=200, help='Number of simulations of the MCTS agent.')
-    parser.add_argument('--priority', type=str, choices=['score', 'highest_atom'], default='score', help='Priority for the Expectimax agent: "score" or "highest_atom"')
+    parser.add_argument('--priority', type=str, choices=['score', 'highest_atom'], default='score',
+                        help='Priority for the Expectimax agent: "score" or "highest_atom"')
     return parser.parse_args()
 
 def agent_builder(agent_type, depth, simulations, priority):
     evaluation_function = None
+    if priority == 'score':
+        prioritize_score = True
+    else:
+        prioritize_score = False
     if agent_type == 'ayelet':
         agent = AyeletAgent()
     elif agent_type == 'reflex':
@@ -54,11 +60,11 @@ def agent_builder(agent_type, depth, simulations, priority):
         agent = MCTSAgent(simulations=simulations)
     elif agent_type == 'expectimax':
         # Set the evaluation function based on the priority argument
-        if priority == 'score':
+        if prioritize_score:
             evaluation_function = score_evaluation_function
-        elif priority == 'highest_atom':
+        else:
             evaluation_function = highest_atom_evaluation_function
-        agent = ExpectimaxAgent(depth=depth, evaluation_function=evaluation_function)
+        agent = ExpectimaxAgent(depth=depth,prioritize_score= prioritize_score , evaluation_function=evaluation_function)
     elif agent_type == 'random':
         agent = SmartRandomAgent()
     else:

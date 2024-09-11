@@ -370,14 +370,16 @@ class ExpectimaxAgent(Agent):
     Your expectimax agent
     """
 
-    def __init__(self, evaluation_function=None, depth=2):
+    def __init__(self, evaluation_function=None, prioritize_score = True ,depth=2):
         super().__init__()
         self.evaluation_function = evaluation_function if evaluation_function else score_evaluation_function
         self.depth = depth
+        self.prioritize_score = prioritize_score
 
     def get_action(self, game_state):
         """
         Returns the expectimax action using self.depth and self.evaluation_function.
+        Handles the minus atom only when prioritizing score.
         """
         best_value = -np.inf
         best_action = None
@@ -385,8 +387,8 @@ class ExpectimaxAgent(Agent):
         # Get all legal actions for the agent (agent_index=0)
         legal_actions = game_state.get_legal_actions(agent_index=0)
 
-        # If the center atom is a minus, first select an atom, then convert it to plus
-        if game_state.ring.center_atom.symbol == "-":
+        # Check if prioritizing score and the center atom is a minus atom
+        if self.prioritize_score and game_state.ring.center_atom.symbol == "-":
             if game_state.pending_minus_action is None:
                 # Step 1: Select the highest atom
                 highest_atom_index = self.find_highest_atom_index(game_state)
@@ -399,7 +401,7 @@ class ExpectimaxAgent(Agent):
                     best_action = (Action.CONVERT_TO_PLUS, selected_atom, midway_index)
                 return best_action
 
-        # Standard expectimax for all other cases
+        # Standard expectimax for all other cases or when not prioritizing score
         for action in legal_actions:
             # Generate the successor game state for each action
             successor = game_state.generate_successor(agent_index=0, action=action)
