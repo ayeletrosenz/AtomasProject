@@ -90,3 +90,7 @@ class GameState(object):
         else:
             raise Exception("illegal agent index.")
         return successor
+
+    def check_done(self):
+        if self._ring.check_game_over():
+            self._done = True

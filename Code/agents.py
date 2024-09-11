@@ -253,8 +253,13 @@ class ReflexAgent(Agent):
         # Return the score of the successor game state
         return successor_game_state.score
 
+from game import Agent
+import random
+import math
+
+
 class MCTSAgent(Agent):
-    def __init__(self, simulations=1000):
+    def __init__(self, simulations=300):
         super(MCTSAgent, self).__init__()
         self.simulations = simulations
 
@@ -262,14 +267,18 @@ class MCTSAgent(Agent):
         root = Node(game_state)
 
         for _ in range(self.simulations):
+            # print(f"simulation {_}\n")
             node = self._select(root)
+            # print("selected\n")
             reward = self._simulate(node.state)
+            # print("simulated\n")
             self._backpropagate(node, reward)
 
         return self._best_child(root, exploration_constant=0).action
 
     def _select(self, node):
         while not node.state.done:
+            # print("not done\n")
             if not node.is_fully_expanded():
                 return self._expand(node)
             else:
@@ -277,21 +286,31 @@ class MCTSAgent(Agent):
         return node
 
     def _expand(self, node):
+        # print("expanding...\n")
         actions = node.state.get_legal_actions(agent_index=0)
         for action in actions:
+            # print("new action\n")
             if action not in [child.action for child in node.children]:
-                next_state = node.state.generate_successor(action=action)
+                next_state = node.state.generate_successor(agent_index=0, action=action)
                 child_node = Node(next_state, parent=node, action=action)
+                # print("create new child node\n")
                 node.children.append(child_node)
                 return child_node
         raise Exception("Should never reach here")
 
     def _simulate(self, state):
         current_state = state
-        while not current_state.done:
+        # print("simulating...\n")
+        # print(f"current state: {current_state}\n")
+        # while not current_state.done:
+            # current_state.check_done()
+        for _ in range(20):
+            # print(f"checked done {current_state.done}\n")
             legal_actions = current_state.get_legal_actions(agent_index=0)
+            # print(f"legal actions: {legal_actions}\n")
             action = random.choice(legal_actions)
-            current_state = current_state.generate_successor(action=action)
+            # print(f"action: {action}\n")
+            current_state = current_state.generate_successor(agent_index=0, action=action)
         return current_state.score
 
     def _backpropagate(self, node, reward):
@@ -321,9 +340,11 @@ class Node:
         self.visits = 0
         self.reward = 0
         self.action = action
+        # print("Node created\n")
 
     def is_fully_expanded(self):
         return len(self.children) == len(self.state.get_legal_actions(agent_index=0))
+
 
 class ExpectimaxAgent(Agent):
     """

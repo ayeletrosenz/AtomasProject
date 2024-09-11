@@ -2,7 +2,7 @@ import argparse
 import pygame
 from game import Game, RandomOpponentAgent
 from game_state import GameState
-from agents import  AyeletAgent, ReflexAgent, MCTSAgent, ExpectimaxAgent
+from agents import AyeletAgent, ReflexAgent, MCTSAgent, ExpectimaxAgent
 import MCTSagent
 
 class GameRunner(object):
@@ -64,7 +64,8 @@ def main():
         pygame.init()
 
     num_of_games = args.num_of_games
-    agent = agent_builder(agent_type=args.agent, depth=args.depth, simulations=args.simulations)
+    # agent = agent_builder(agent_type=args.agent, depth=args.depth, simulations=args.simulations)
+    agent = MCTSAgent()
 
     # Informative printings about agent type and number of games
     print(f"Running {num_of_games} game(s) with agent type: {args.agent}")

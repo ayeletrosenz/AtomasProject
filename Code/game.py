@@ -83,9 +83,10 @@ class Game(object):
                 main_no_shiny.print_move(self._state, action)
 
             # Check if the game has ended
-            if self._state._ring.check_game_end():
-                final_score = self._state._ring.score
-                highest_atom = self._state._ring.highest_atom
+            if self._state.ring.check_game_end():
+                print(self._state.done)
+                final_score = self._state.ring.score
+                highest_atom = self._state.ring.highest_atom
                 self.quit()
                 self._show_end_screen(final_score, highest_atom)
                 return final_score, highest_atom

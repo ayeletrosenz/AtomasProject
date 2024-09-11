@@ -235,6 +235,7 @@ class Ring:
 
     def max_atom(self):
         return np.max(self.atoms)
+
     def get_highest_atom(self):
         return self.highest_atom
 
@@ -312,10 +313,15 @@ class Ring:
                 self.special_atoms("-", (68, 119, 194), (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30), screen)
             case _:
                 self.normal_atoms(self.center_atom, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30), screen)
+
+    def check_game_over(self):
+        return self.atom_count > self.max_atoms
+
+
     def check_game_end(self):
         '''Function to check if the player loses the game.
         '''
-        if (self.atom_count > self.max_atoms):
+        if self.check_game_over():
             for atom in self.atoms:
                 if atom.atom_number >= 1:
                     self.score.update(atom.atom_number)
@@ -323,6 +329,7 @@ class Ring:
             print("\nGame over")
             print("Score:", self.score.score)
             print("Highest atom:", self.highest_atom)
+
 
             return True
         return False
