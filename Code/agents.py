@@ -4,10 +4,11 @@ from typing import Tuple, List
 import numpy as np
 import abc
 from game import Agent, Action
+from config import PLUS, MINUS, NO_SELECTION
 
-PLUS = -1
-MINUS = -2
-NO_SELECTION = -1
+# PLUS = -1
+# MINUS = -2
+# NO_SELECTION = -1
 
 
 def choose_random(ring) -> int:
@@ -170,25 +171,25 @@ class AyeletAgent(Agent):
         # Check if there is a plus next to the chosen midway
         if longest_chain_length < 2 or self.is_plus_nearby(ring, chosen_midway_index, atom_count):
             return self.place_random_near_spawning_atoms(ring, atom_count)
-        return (Action.PLACE_ATOM, NO_SELECTION, chosen_midway_index)
+        return Action.PLACE_ATOM, NO_SELECTION, chosen_midway_index
 
     def handle_regular_atom(self, ring, atom_count,game_state) -> Tuple[Action, int, int]:
         """Handles logic when the center atom is neither PLUS nor MINUS."""
         if can_switch_to_plus(game_state) and (
                 (atom_count > 10 and exists_chain_of_length(ring, 4)) or
                 (atom_count > 14 and exists_chain_of_length(ring, 2))):
-            return (Action.CONVERT_TO_PLUS, NO_SELECTION, NO_SELECTION)
+            return Action.CONVERT_TO_PLUS, NO_SELECTION, NO_SELECTION
 
         midway_next_to_plus = find_midway_next_to_plus(ring)
         if midway_next_to_plus is not None:
-            return (Action.PLACE_ATOM, NO_SELECTION, midway_next_to_plus)
+            return Action.PLACE_ATOM, NO_SELECTION, midway_next_to_plus
 
         bigger_chain_midway = find_bigger_chain_midway(ring)
         if bigger_chain_midway is not None:
             return (Action.PLACE_ATOM, NO_SELECTION, bigger_chain_midway)
 
         best_placement_index = find_best_placement(ring)
-        return (Action.PLACE_ATOM, NO_SELECTION, best_placement_index)
+        return Action.PLACE_ATOM, NO_SELECTION, best_placement_index
 
     def is_plus_nearby(self, ring, chosen_midway_index, atom_count) -> bool:
         """Checks if there is a PLUS atom near the chosen midway."""
@@ -199,7 +200,7 @@ class AyeletAgent(Agent):
         total_turns = ring.total_turns
         min_spawning_atom = 1 + total_turns // 40
         max_spawning_atom = 3 + total_turns // 40
-        return atom_number >= min_spawning_atom and atom_number <= max_spawning_atom
+        return min_spawning_atom <= atom_number <= max_spawning_atom
 
     def place_random_near_spawning_atoms(self, ring, atom_count) -> Tuple[Action, int, int]:
         """Finds a random placement midway between two spawning atoms, or chooses randomly if none found."""
@@ -209,18 +210,18 @@ class AyeletAgent(Agent):
         for _ in range(atom_count):
             if (self.is_spawing(ring, ring.atoms[i].atom_number) and
                     self.is_spawing(ring, ring.atoms[(i + 1) % atom_count].atom_number)):
-                return (Action.PLACE_ATOM, NO_SELECTION, i)
+                return Action.PLACE_ATOM, NO_SELECTION, i
             i = (i + 1) % atom_count
         # Then look for a midway where at least one neighbor is below spawning limit
         i = choose_random(ring)
         for _ in range(atom_count):
             if (self.is_spawing(ring, ring.atoms[i].atom_number) or
                     self.is_spawing(ring, ring.atoms[(i + 1) % atom_count].atom_number)):
-                return (Action.PLACE_ATOM, NO_SELECTION, i)
+                return Action.PLACE_ATOM, NO_SELECTION, i
             i = (i + 1) % atom_count
 
         # If no suitable midway found, choose randomly
-        return (Action.PLACE_ATOM, NO_SELECTION, choose_random(ring))
+        return Action.PLACE_ATOM, NO_SELECTION, choose_random(ring)
 
 
 class SmartRandomAgent(Agent):
@@ -230,21 +231,21 @@ class SmartRandomAgent(Agent):
         atom_count = ring.atom_count
 
         if center_atom == MINUS:
-            return (Action.PLACE_ATOM, choose_random(ring), NO_SELECTION)
+            return Action.PLACE_ATOM, choose_random(ring), NO_SELECTION
 
         elif center_atom == PLUS:
             i = choose_random(ring)
             for _ in range(atom_count):
                 if ring.atoms[i].atom_number == ring.atoms[(i + 1) % atom_count].atom_number:
-                    return (Action.PLACE_ATOM, NO_SELECTION, i)
+                    return Action.PLACE_ATOM, NO_SELECTION, i
                 i = (i + 1) % atom_count
-            return (Action.PLACE_ATOM, NO_SELECTION, choose_random(ring))
+            return Action.PLACE_ATOM, NO_SELECTION, choose_random(ring)
 
         else:
             if can_switch_to_plus(ring) and random.random() < 0.5:
-                return (Action.CONVERT_TO_PLUS, NO_SELECTION, NO_SELECTION)
+                return Action.CONVERT_TO_PLUS, NO_SELECTION, NO_SELECTION
             else:
-                return (Action.PLACE_ATOM, NO_SELECTION, choose_random(ring))
+                return Action.PLACE_ATOM, NO_SELECTION, choose_random(ring)
 
 
 class ReflexAgent(Agent):
@@ -291,17 +292,19 @@ class ReflexAgent(Agent):
         # Return the score of the successor game state
         return successor_game_state.score
 
+
 class MCTSAgent(Agent):
-    def __init__(self, simulations=1000):
+    def __init__(self, simulations=20, prioritize_score=False):
         super(MCTSAgent, self).__init__()
         self.simulations = simulations
+        self.prioritize_score = prioritize_score
 
     def get_action(self, game_state):
         root = Node(game_state)
 
         for _ in range(self.simulations):
             node = self._select(root)
-            reward = self._simulate(node.state)
+            reward = self._simulate(node.state, self.prioritize_score)
             self._backpropagate(node, reward)
 
         return self._best_child(root, exploration_constant=0).action
@@ -324,12 +327,26 @@ class MCTSAgent(Agent):
                 return child_node
         raise Exception("Should never reach here")
 
-    def _simulate(self, state):
+    # def _simulate(self, state):
+    #     current_state = state
+    #     for _ in range(20):
+    #         legal_actions = current_state.get_legal_actions(agent_index=0)
+    #         best_action = max(legal_actions, key=lambda a: current_state.generate_successor(agent_index=0, action=a).score)
+    #         current_state = current_state.generate_successor(agent_index=0, action=best_action)
+    #     return current_state.score
+
+    def _simulate(self, state, prioritize_score):
         current_state = state
-        while not current_state.done:
+        for _ in range(20):  # Simulate for a fixed number of steps
             legal_actions = current_state.get_legal_actions(agent_index=0)
-            action = random.choice(legal_actions)
-            current_state = current_state.generate_successor(action=action)
+
+            if prioritize_score:
+                best_action = max(legal_actions, key=lambda a: current_state.generate_successor(agent_index=0, action=a).score)
+            else:
+                best_action = max(legal_actions, key=lambda a: current_state.generate_successor(agent_index=0, action=a).ring.get_highest_atom())
+
+            current_state = current_state.generate_successor(agent_index=0, action=best_action)
+
         return current_state.score
 
     def _backpropagate(self, node, reward):
@@ -362,7 +379,6 @@ class Node:
 
     def is_fully_expanded(self):
         return len(self.children) == len(self.state.get_legal_actions(agent_index=0))
-
 
 
 class ExpectimaxAgent(Agent):
@@ -464,7 +480,7 @@ class ExpectimaxAgent(Agent):
         return legal_moves
 
 
-def score_evaluation_function( state):
+def score_evaluation_function(state):
         """
         Default evaluation function that returns a heuristic score of the game state.
         This could be based on the current score, the highest atom, and other factors.
@@ -473,7 +489,7 @@ def score_evaluation_function( state):
         score = state._score * 10000
 
         # Extract information from the ring
-        atoms = state._ring.atoms  # Get the list of atoms in the ring
+        atoms = state.ring.atoms  # Get the list of atoms in the ring
         atom_weights = [atom.atom_number for atom in atoms]  # Get their weights
         chains = get_chains(atoms)  # Get chains of consecutive similar atoms
 
@@ -511,6 +527,7 @@ def score_evaluation_function( state):
         score -= penalty_for_atom_count
 
         return score
+
 
 def highest_atom_evaluation_function(state):
     score = state.highest_atom * 10000
@@ -554,7 +571,9 @@ def highest_atom_evaluation_function(state):
     score -= penalty_for_atom_count
 
     return score
-def get_chains( atoms):
+
+
+def get_chains(atoms):
         """
         Finds all symmetric chains in the list of atoms, considering the circular nature of the ring.
 

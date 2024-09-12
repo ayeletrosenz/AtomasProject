@@ -3,15 +3,19 @@ from game_state import Action, OpponentAction
 import pygame
 import time
 import main_no_shiny
-import json
+# import json
+from printMove import print_move
+from config import SCREEN_WIDTH, SCREEN_HEIGHT, BACKGROUND_COLOR, atom_data
+#
+# SCREEN_WIDTH = 400
+# SCREEN_HEIGHT = 700
+# BACKGROUND_COLOR = (82, 42, 50)
+# PLUS = -1
+# MINUS = -2
+# with open(r"atom_data.json", "r") as f:
+#     atom_data = json.load(f)
 
-SCREEN_WIDTH = 400
-SCREEN_HEIGHT = 700
-BACKGROUND_COLOR = (82, 42, 50)
-PLUS = -1
-MINUS = -2
-with open(r"atom_data.json", "r") as f:
-    atom_data = json.load(f)
+
 class Agent(object):
     def __init__(self):
         super(Agent, self).__init__()
@@ -86,7 +90,7 @@ class Game(object):
                 return
 
             if self.print_move:
-                main_no_shiny.print_move(self._state, action)
+                print_move(self._state, action)
 
             # Apply the player's action
             self._state.apply_action(action)
@@ -97,19 +101,19 @@ class Game(object):
                 self._state.apply_opponent_action(opponent_action)
 
             # Update game state details
-            self._state._ring.total_turns += 1
-            self._state._ring.update_highest()
-            self._state._ring.update_atom_count()
+            self._state.ring.total_turns += 1
+            self._state.ring.update_highest()
+            self._state.ring.update_atom_count()
 
             if self.display:
-                self._state._ring.draw_outer(self.screen)
-                self._state._ring.draw_inner(self.screen)
-                self._state._ring.score.draw(self._state._ring.highest_atom, self.screen)
+                self._state.ring.draw_outer(self.screen)
+                self._state.ring.draw_inner(self.screen)
+                self._state.ring.score.draw(self._state.ring.highest_atom, self.screen)
 
                 pygame.display.flip()
                 self.clock.tick(30)
 
-        return self._state._ring.score, self._state._ring.highest_atom  # Return final score and highest atom
+        return self._state.ring.score, self._state.ring.highest_atom  # Return final score and highest atom
 
     def _show_end_screen(self, score, highest_atom):
         """

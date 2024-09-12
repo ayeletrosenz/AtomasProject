@@ -3,23 +3,29 @@ import random
 import math
 import json
 import numpy as np
-import main_no_shiny
+from ring import Ring
+import atom
+
 pi = math.pi
 from enum import Enum
+
 
 class Action(Enum):
     PLACE_ATOM = 1
     CONVERT_TO_PLUS = 2
     SELECT_ATOM_MINUS = 3
     STOP = 4
+
 NO_SELECTION = -1  # Indicates no atom was selected from the ring.
 OpponentAction = "generate inner"
+
 
 class GameState(object):
     def __init__(self, ring=None):
         super(GameState, self).__init__()
         if ring is None:
-            ring = main_no_shiny.Ring()
+            # ring = main_no_shiny.Ring()
+            ring = Ring()
             ring.start_game()
         self._ring = ring
         self._done = False
@@ -33,7 +39,6 @@ class GameState(object):
     # Reset pending action once the sequence is complete
     def clear_pending_action(self):
         self.pending_minus_action = None
-
 
     @property
     def score(self):
@@ -92,9 +97,9 @@ class GameState(object):
         action_type, chosen_atom_index, midway_index = action
 
         if action_type == Action.PLACE_ATOM:
-                clicked_mid = False
-                self._ring.place_atom(NO_SELECTION, midway_index, clicked_mid)
-                self.clear_pending_action()
+            clicked_mid = False
+            self._ring.place_atom(NO_SELECTION, midway_index, clicked_mid)
+            self.clear_pending_action()
 
         elif action_type == Action.CONVERT_TO_PLUS:
             clicked_mid = True
@@ -115,7 +120,3 @@ class GameState(object):
         else:
             raise Exception("illegal agent index.")
         return successor
-
-    def check_done(self):
-        if self._ring.check_game_over():
-            self._done = True

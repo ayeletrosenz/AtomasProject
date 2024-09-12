@@ -1,4 +1,4 @@
-from config import SCREEN_WIDTH, SCREEN_HEIGHT, screen
+from config import SCREEN_WIDTH, SCREEN_HEIGHT
 import pygame
 
 
@@ -8,7 +8,7 @@ class Background:
         self.RING_COLOUR = (133, 94, 97)
         self.ATOM_RING_CENTER = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30)
 
-    def draw(self):
+    def draw(self, screen):
         '''Draws the background as well as the ring surrouding the atoms.'''
         screen.fill(self.BACKGROUND_COLOR)
         pygame.draw.circle(screen, self.RING_COLOUR,

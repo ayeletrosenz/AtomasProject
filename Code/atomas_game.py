@@ -2,9 +2,10 @@ import argparse
 import pygame
 from game import Game, RandomOpponentAgent
 from game_state import GameState
-from agents import AyeletAgent, ReflexAgent, ExpectimaxAgent, SmartRandomAgent
+from agents import AyeletAgent, ReflexAgent, ExpectimaxAgent, SmartRandomAgent, MCTSAgent
 from agents import score_evaluation_function, highest_atom_evaluation_function
-from MCTSagent import MCTSAgent
+
+
 
 class GameRunner(object):
     def __init__(self, agent=None, sleep_between_actions=False, print_move=True, display=None):
@@ -46,6 +47,7 @@ def parse_arguments():
                         help='Priority for the Expectimax agent: "score" or "highest_atom"')
     return parser.parse_args()
 
+
 def agent_builder(agent_type, depth, simulations, priority):
     evaluation_function = None
     if priority == 'score':
@@ -79,8 +81,8 @@ def main():
         pygame.init()
 
     num_of_games = args.num_of_games
-    agent = agent_builder(agent_type=args.agent, depth=args.depth, simulations=args.simulations, priority=args.priority)
-
+    # agent = agent_builder(agent_type=args.agent, depth=args.depth, simulations=args.simulations, priority=args.priority)
+    agent = MCTSAgent()
     # Informative printings about agent type and number of games
     print(f"Running {num_of_games} game(s) with agent type: {args.agent}")
     if args.agent == 'expectimax':
@@ -124,6 +126,7 @@ def main():
 
     if args.display:
         pygame.quit()
+
 
 if __name__ == '__main__':
     main()

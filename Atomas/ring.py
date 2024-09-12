@@ -3,9 +3,9 @@ import pygame
 import random
 import math
 from math import pi
-from atom import Atom
+from Code.atom import Atom
 from score import Score
-from config import SCREEN_WIDTH, SCREEN_HEIGHT, screen, clicked_mid, IS_HUMAN_PLAYER
+from Code.config import SCREEN_WIDTH, SCREEN_HEIGHT, screen, clicked_mid, IS_HUMAN_PLAYER
 
 
 class Ring:

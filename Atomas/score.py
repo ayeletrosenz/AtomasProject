@@ -1,6 +1,6 @@
 import pygame
 import math
-from config import SCREEN_WIDTH, SCREEN_HEIGHT, screen, atom_data
+from Code.config import SCREEN_WIDTH, SCREEN_HEIGHT, screen, atom_data
 
 
 class Score:

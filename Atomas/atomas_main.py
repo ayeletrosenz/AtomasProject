@@ -1,11 +1,11 @@
 import pygame
 import math
 
-import config
-from agents import GameState, RandomAgent, SmartRandomAgent
+from Code import config
+from agents import GameState, SmartRandomAgent
 from ring import Ring
-from background import Background
-from config import clock
+from Code.background import Background
+from Code.config import clock
 pi = math.pi
 
 if __name__ == "__main__":
