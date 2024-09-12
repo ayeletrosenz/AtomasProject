@@ -80,7 +80,7 @@ class Game(object):
                 final_score = self._state._ring.score
                 highest_atom = self._state._ring.highest_atom
                 self.quit()
-                self._show_end_screen(final_score, highest_atom)
+                # self._show_end_screen(final_score, highest_atom)
                 return final_score, highest_atom
 
             # Get the action from the agent
