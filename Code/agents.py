@@ -327,21 +327,13 @@ class MCTSAgent(Agent):
                 return child_node
         raise Exception("Should never reach here")
 
-    # def _simulate(self, state):
-    #     current_state = state
-    #     for _ in range(20):
-    #         legal_actions = current_state.get_legal_actions(agent_index=0)
-    #         best_action = max(legal_actions, key=lambda a: current_state.generate_successor(agent_index=0, action=a).score)
-    #         current_state = current_state.generate_successor(agent_index=0, action=best_action)
-    #     return current_state.score
-
     def _simulate(self, state, prioritize_score):
         current_state = state
-        for _ in range(20):  # Simulate for a fixed number of steps
+        for _ in range(5):  # Simulate for a fixed number of steps
             legal_actions = current_state.get_legal_actions(agent_index=0)
 
             if prioritize_score:
-                best_action = max(legal_actions, key=lambda a: current_state.generate_successor(agent_index=0, action=a).score)
+                best_action = max(legal_actions, key=lambda a: ReflexAgent.get_action(ReflexAgent(), current_state.generate_successor(agent_index=0, action=a)))
             else:
                 best_action = max(legal_actions, key=lambda a: current_state.generate_successor(agent_index=0, action=a).ring.get_highest_atom())
 
