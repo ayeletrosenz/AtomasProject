@@ -1,5 +1,5 @@
 
-# Atomas AI Bot - Command-Line Agent
+# Atomas AI Bot
 
 This repository provides an AI bot that can play the Atomas game with multiple agent configurations. It includes various agents like Expectimax, MCTS, Ayelet, and Reflex agents. The game is run from the command line, and the user can specify various options, including which agent to use and other game settings.
 
