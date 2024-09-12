@@ -19,7 +19,7 @@ The main entry point of the AI bot is through the `main()` function, which proce
 ### Example Command
 
 ```bash
-python atomas_bot.py --num_of_games 5 --agent expectimax --depth 3 --priority highest_atom --display True
+python atomas_game.py --num_of_games 5 --agent expectimax --depth 3 --priority highest_atom --display True
 ```
 
 ### Command-Line Arguments
