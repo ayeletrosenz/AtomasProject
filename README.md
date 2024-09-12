@@ -12,7 +12,7 @@ This repository provides an AI bot that can play the Atomas game with multiple a
 
 2. Clone the repository and navigate to the project directory.
 
-3. The implementation is based on and modifies the Atomas game code from the `atomas-python` repository found on GitHub [here](https://github.com/Mjnstag/atomas-python). The original game file was renamed to `atomas_game.py` for better clarity.
+3. The implementation is based on and modifies the Atomas game code from the `atomas-python` repository found on GitHub [here](https://github.com/Mjnstag/atomas-python). 
 
 ## Running the Game
 
