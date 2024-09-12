@@ -7,10 +7,12 @@ This repository provides an AI bot that can play the Atomas game with multiple a
 
 1. Install dependencies:
    ```bash
-   pip install pygame pandas
+   pip install pygame pandas numpy
    ```
 
 2. Clone the repository and navigate to the project directory.
+
+3. The implementation is based on and modifies the Atomas game code from the `atomas-python` repository found on GitHub [here](https://github.com/Mjnstag/atomas-python). The original game file was renamed to `atomas_game.py` for better clarity.
 
 ## Running the Game
 
@@ -54,3 +56,5 @@ Highest Score: 12345
 Highest Atom Achieved: 54
 Average Score: 9876
 ```
+
+
