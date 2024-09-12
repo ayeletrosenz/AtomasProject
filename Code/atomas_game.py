@@ -6,7 +6,6 @@ from agents import AyeletAgent, ReflexAgent, ExpectimaxAgent, SmartRandomAgent, 
 from agents import score_evaluation_function, highest_atom_evaluation_function
 
 
-
 class GameRunner(object):
     def __init__(self, agent=None, sleep_between_actions=False, print_move=True, display=None):
         super(GameRunner, self).__init__()
@@ -59,14 +58,14 @@ def agent_builder(agent_type, depth, simulations, priority):
     elif agent_type == 'reflex':
         agent = ReflexAgent()
     elif agent_type == 'mcts':
-        agent = MCTSAgent(simulations=simulations)
+        agent = MCTSAgent(simulations=simulations, prioritize_score=prioritize_score)
     elif agent_type == 'expectimax':
         # Set the evaluation function based on the priority argument
         if prioritize_score:
             evaluation_function = score_evaluation_function
         else:
             evaluation_function = highest_atom_evaluation_function
-        agent = ExpectimaxAgent(depth=depth,prioritize_score= prioritize_score , evaluation_function=evaluation_function)
+        agent = ExpectimaxAgent(depth=depth, prioritize_score=prioritize_score, evaluation_function=evaluation_function)
     elif agent_type == 'random':
         agent = SmartRandomAgent()
     else:
