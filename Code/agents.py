@@ -459,49 +459,66 @@ class ExpectimaxAgent(Agent):
 
         return highest_atom_index
 
-    def get_minus_atom_actions(self, state, chosen_atom_index):
-        """
-        Generate only CONVERT_TO_PLUS actions for the given highest atom index.
-        """
-        legal_moves = []
-
-        # Find all possible midways where the chosen atom (after converting to plus) can be placed
-        for midway_index in range(state.ring.atom_count):
-            legal_moves.append((Action.CONVERT_TO_PLUS, chosen_atom_index, midway_index))
-
-        return legal_moves
 
 
 def score_evaluation_function(state):
-        """
-        Default evaluation function that returns a heuristic score of the game state.
-        This could be based on the current score, the highest atom, and other factors.
-        """
-        # Prioritize the state's score heavily
-        score = state._score * 10000
+    """
+    Default evaluation function that returns a heuristic score of the game state.
+    This could be based on the current score, the longest symmetric chain, and other factors.
+    """
+    # Prioritize the state's score heavily
+    score = state._score * 10000
 
-        # Extract information from the ring
-        atoms = state.ring.atoms  # Get the list of atoms in the ring
-        atom_weights = [atom.atom_number for atom in atoms]  # Get their weights
-        chains = get_chains(atoms)  # Get chains of consecutive similar atoms
+    # Extract information from the ring
+    atoms = state.ring.atoms  # Get the list of atoms in the ring
+    atom_weights = [atom.atom_number for atom in atoms]  # Get their weights
 
-        # Calculate the lengths of all chains
-        chain_lengths = [len(chain) for chain in chains]
+    # Assuming get_chains(atoms) returns a list of chains, where each chain is a list of consecutive similar atoms
+    chains = get_chains(atoms)  # Get chains of consecutive similar atoms
 
-        # Determine the longest and second longest chain lengths
-        if len(chain_lengths) > 0:
-            chain_lengths.sort(reverse=True)
-            longest_chain_length = chain_lengths[0]
-            # Use 0 if there's no second chain to avoid indexing errors
-            second_longest_chain_length = chain_lengths[1] if len(chain_lengths) > 1 else 0
+    # Calculate the lengths of all chains
+    chain_lengths = [len(chain) for chain in chains]
 
-            # Score for the longest chain (e.g., give it a weight of 1000)
-            score += longest_chain_length * 1000
+    # Determine the longest and second longest chain lengths
+    if len(chain_lengths) > 0:
+        chain_lengths.sort(reverse=True)
+        longest_chain_length = chain_lengths[0]
+        second_longest_chain_length = chain_lengths[1] if len(chain_lengths) > 1 else 0
 
-            # Score for the second longest chain (e.g., 10% of the longest chain's score)
-            score += second_longest_chain_length * 100
+        # Score for the longest chain (e.g., give it a weight of 1000)
+        score += longest_chain_length * 1000
 
-        # 2. Favor states where atoms of similar weights are adjacent, excluding special atoms
+        # Score for the second longest chain (e.g., 10% of the longest chain's score)
+        # score += second_longest_chain_length * 100
+
+    # Apply step 2 logic only to the longest chain
+    if len(chains) > 0:
+        longest_chain = chains[chain_lengths.index(longest_chain_length)]  # Find the longest chain
+        if len(longest_chain) > 1:  # Only consider chains with more than one atom
+            mid = len(longest_chain) // 2
+            left_side = [atom.atom_number for atom in longest_chain[:mid]]
+            right_side = [atom.atom_number for atom in reversed(longest_chain[mid:])]
+
+            # Check if left side is increasing and right side is decreasing
+            if all(left_side[i] < left_side[i + 1] for i in range(len(left_side) - 1)) and \
+               all(right_side[i] < right_side[i + 1] for i in range(len(right_side) - 1)):
+                # Prioritize symmetric chains (increasing-decreasing pattern)
+                # score += 500 * len(longest_chain)  # Higher score for longer symmetric chains
+
+                # Bonus for smaller distances between adjacent atoms
+                for i in range(len(left_side) - 1):
+                    distance = abs(left_side[i + 1] - left_side[i])
+                    score += max(0, 200 - (distance * 20))  # Bonus for smaller distances
+
+                for i in range(len(right_side) - 1):
+                    distance = abs(right_side[i + 1] - right_side[i])
+                    score += max(0, 200 - (distance * 20))  # Bonus for smaller distances
+            else:
+                score -= 200 * len(longest_chain)  # Penalize for breaking the symmetric pattern
+
+    # 3. Favor states where atoms of similar weights are adjacent, excluding special atoms
+    # Only relevant if no chain can be formed; otherwise chains take priority
+    if len(chains) == 0:
         for i in range(len(atoms) - 1):
             atom_current = atoms[i]
             atom_next = atoms[i + 1]
@@ -513,21 +530,25 @@ def score_evaluation_function(state):
                 else:
                     score -= 50  # Penalize bad arrangements
 
-        # 3. Penalty for the number of atoms in the ring
-        atom_count = len(atoms)
-        penalty_for_atom_count = atom_count * 10000  # Apply a penalty per atom in the ring
-        score -= penalty_for_atom_count
+    # 4. Penalty for the number of atoms in the ring
+    atom_count = len(atoms)
+    penalty_for_atom_count = atom_count * 10000  # Apply a penalty per atom in the ring
+    score -= penalty_for_atom_count
 
-        return score
+    return score
+
+
 
 
 def highest_atom_evaluation_function(state):
     score = state.highest_atom * 10000
 
     # Extract information from the ring
+    ring = state._ring
     atoms = state._ring.atoms  # Get the list of atoms in the ring
     atom_weights = [atom.atom_number for atom in atoms]  # Get their weights
-    chains = get_chains(atoms)  # Get chains of consecutive similar atoms
+    chains = get_chains(ring)  # Get chains of consecutive similar atoms
+
 
     # Calculate the lengths of all chains
     chain_lengths = [len(chain) for chain in chains]
@@ -566,38 +587,80 @@ def highest_atom_evaluation_function(state):
 
 
 def get_chains(atoms):
-        """
-        Finds all symmetric chains in the list of atoms, considering the circular nature of the ring.
+    """
+    Finds all even-length symmetric chains in a circular list of Atom objects.
 
-        Args:
-        atoms (list): List of Atom objects.
+    Args:
+    atoms (list): List of Atom objects.
 
-        Returns:
-        list: A list of symmetric chains, where each chain is a list of Atom objects.
-        """
-        chains = []
-        n = len(atoms)
+    Returns:
+    list: A list of unique symmetric chains, where each chain is a list of Atom objects.
+    """
+    n = len(atoms)
+    chains = []
+    seen_chains = set()  # Track unique chains based on their atom numbers.
 
-        if n < 2:
-            return chains  # No chains possible if fewer than 2 atoms
+    # Loop over every possible center point for even-length chains
+    for center in range(n):
+        for half_length in range(1, n // 2 + 1):  # Only consider even-length chains
+            is_symmetric = True
+            chain = []
 
-        # Extend the list to handle the circular nature
-        extended_atoms = atoms + atoms
+            # Check symmetry on both sides of the center
+            for i in range(half_length):
+                left_index = (center - i - 1) % n  # Wrap around left
+                right_index = (center + i) % n  # Wrap around right
 
-        # Check for symmetric chains
-        for center in range(n):
-
-            # Even-length symmetric chains centered between two atoms
-            left, right = center, center + 1
-            while left >= 0 and \
-                    right < n + center and extended_atoms[left].atom_number == extended_atoms[right].atom_number:
-                if extended_atoms[left].special or extended_atoms[right].special:  # No special atoms allowed in the chain
+                if atoms[left_index].atom_number != atoms[right_index].atom_number:
+                    is_symmetric = False
                     break
-                if (right - left + 1) >= 2:  # At least two atoms form a chain
-                    if left >= center and right < center + n:
-                        chains.append(extended_atoms[left:right + 1])
-                left -= 1
-                right += 1
 
-        return chains
+                # Insert atoms symmetrically
+                chain.insert(0, atoms[left_index])
+                chain.append(atoms[right_index])
 
+            # If a symmetric chain is found and it's unique, collect it
+            if is_symmetric:
+                chain_key = tuple(atom.atom_number for atom in chain)
+
+                # Ensure no subchains are added if a longer chain exists
+                if chain_key not in seen_chains:
+                    chains.append(chain)
+                    seen_chains.add(chain_key)
+
+    # Special case: Check if the entire ring is a symmetric chain
+    if n % 2 == 0:  # Only consider even-length rings
+        is_symmetric = True
+        full_chain = []
+
+        # Check symmetry across the entire ring
+        for i in range(n // 2):
+            if atoms[i].atom_number != atoms[(n - 1 - i) % n].atom_number:
+                is_symmetric = False
+                break
+            full_chain.insert(0, atoms[i])
+            full_chain.append(atoms[(n - 1 - i) % n])
+
+        if is_symmetric:
+            full_chain_key = tuple(atom.atom_number for atom in atoms)
+            if full_chain_key not in seen_chains:
+                chains.append(atoms[:])  # Add the full chain (entire ring) only once
+                seen_chains.add(full_chain_key)
+
+    # Check for two full-length chains and keep the one with the heavier center
+    full_length_chains = [chain for chain in chains if len(chain) == n]
+    if len(full_length_chains) == 2:
+        # Get center atoms for both chains
+        mid_idx1 = n // 2
+        mid_idx2 = n // 2 - 1
+
+        chain1_center = full_length_chains[0][mid_idx1].atom_number
+        chain2_center = full_length_chains[1][mid_idx2].atom_number
+
+        # Remove the chain with the lighter center atom
+        if chain1_center < chain2_center:
+            chains.remove(full_length_chains[0])
+        else:
+            chains.remove(full_length_chains[1])
+
+    return chains
