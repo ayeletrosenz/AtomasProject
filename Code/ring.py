@@ -168,6 +168,9 @@ class Ring:
             atom_indices = [i for i in range(len(atom_list))]
             n = len(atom_list)
 
+            if n == 1:
+                return [], []
+            
             # Special case: If there are only 2 atoms and they are the same, fuse them
             if n == 2:
                 if atom_list[0] == atom_list[1]:  # If both atoms are the same
@@ -236,10 +239,10 @@ class Ring:
                 new_fusions = []
                 for number, indice in zip(range(len(atom_list)), atom_indices):
                     if atom_list[number] == PLUS:
-                        if atom_list[number-1] == atom_list[(number+1)%len(atom_list)] and atom_list[number-1] > 0:
+                        left_index = number-1
+                        right_index = (number+1)%len(atom_list)
+                        if left_index != right_index and atom_list[left_index] == atom_list[right_index] and atom_list[left_index] > 0:
                             new_fusions.append(indice)
-                            # print(atom_list[number-1], atom_list[number], atom_list[(number+1)%len(atom_list)])
-                # print(new_fusions)
                 if len(new_fusions) == 0:
                     break
                 del self.atoms[new_fusions[0]]
