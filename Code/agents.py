@@ -544,11 +544,11 @@ def highest_atom_evaluation_function(state):
     score = state.highest_atom * 10000
 
     # Extract information from the ring
-    ring = state._ring
-    atoms = state._ring.atoms  # Get the list of atoms in the ring
+    atoms = state.ring.atoms  # Get the list of atoms in the ring
     atom_weights = [atom.atom_number for atom in atoms]  # Get their weights
-    chains = get_chains(ring)  # Get chains of consecutive similar atoms
 
+    # Assuming get_chains(atoms) returns a list of chains, where each chain is a list of consecutive similar atoms
+    chains = get_chains(atoms)  # Get chains of consecutive similar atoms
 
     # Calculate the lengths of all chains
     chain_lengths = [len(chain) for chain in chains]
@@ -557,28 +557,54 @@ def highest_atom_evaluation_function(state):
     if len(chain_lengths) > 0:
         chain_lengths.sort(reverse=True)
         longest_chain_length = chain_lengths[0]
-        # Use 0 if there's no second chain to avoid indexing errors
         second_longest_chain_length = chain_lengths[1] if len(chain_lengths) > 1 else 0
 
         # Score for the longest chain (e.g., give it a weight of 1000)
         score += longest_chain_length * 1000
 
         # Score for the second longest chain (e.g., 10% of the longest chain's score)
-        score += second_longest_chain_length * 100
+        # score += second_longest_chain_length * 100
 
-    # 2. Favor states where atoms of similar weights are adjacent, excluding special atoms
-    for i in range(len(atoms) - 1):
-        atom_current = atoms[i]
-        atom_next = atoms[i + 1]
-        if not atom_current.special and not atom_next.special:  # Only consider non-special atoms
-            if abs(atom_current.atom_number - atom_next.atom_number) <= 1:
-                score += 200  # Bonus for adjacent similar atoms
-            elif abs(atom_current.atom_number - atom_next.atom_number) <= 2:
-                score += 100  # Bonus for maintaining light-to-heavy order
+    # Apply step 2 logic only to the longest chain
+    if len(chains) > 0:
+        longest_chain = chains[chain_lengths.index(longest_chain_length)]  # Find the longest chain
+        if len(longest_chain) > 1:  # Only consider chains with more than one atom
+            mid = len(longest_chain) // 2
+            left_side = [atom.atom_number for atom in longest_chain[:mid]]
+            right_side = [atom.atom_number for atom in reversed(longest_chain[mid:])]
+
+            # Check if left side is increasing and right side is decreasing
+            if all(left_side[i] < left_side[i + 1] for i in range(len(left_side) - 1)) and \
+                    all(right_side[i] < right_side[i + 1] for i in range(len(right_side) - 1)):
+                # Prioritize symmetric chains (increasing-decreasing pattern)
+                # score += 500 * len(longest_chain)  # Higher score for longer symmetric chains
+
+                # Bonus for smaller distances between adjacent atoms
+                for i in range(len(left_side) - 1):
+                    distance = abs(left_side[i + 1] - left_side[i])
+                    score += max(0, 200 - (distance * 20))  # Bonus for smaller distances
+
+                for i in range(len(right_side) - 1):
+                    distance = abs(right_side[i + 1] - right_side[i])
+                    score += max(0, 200 - (distance * 20))  # Bonus for smaller distances
             else:
-                score -= 50  # Penalize bad arrangements
+                score -= 200 * len(longest_chain)  # Penalize for breaking the symmetric pattern
 
-    # 3. Penalty for the number of atoms in the ring
+    # 3. Favor states where atoms of similar weights are adjacent, excluding special atoms
+    # Only relevant if no chain can be formed; otherwise chains take priority
+    if len(chains) == 0:
+        for i in range(len(atoms) - 1):
+            atom_current = atoms[i]
+            atom_next = atoms[i + 1]
+            if not atom_current.special and not atom_next.special:  # Only consider non-special atoms
+                if abs(atom_current.atom_number - atom_next.atom_number) <= 1:
+                    score += 200  # Bonus for adjacent similar atoms
+                elif abs(atom_current.atom_number - atom_next.atom_number) <= 2:
+                    score += 100  # Bonus for maintaining light-to-heavy order
+                else:
+                    score -= 50  # Penalize bad arrangements
+
+    # 4. Penalty for the number of atoms in the ring
     atom_count = len(atoms)
     penalty_for_atom_count = atom_count * 10000  # Apply a penalty per atom in the ring
     score -= penalty_for_atom_count
