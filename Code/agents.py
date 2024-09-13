@@ -6,10 +6,6 @@ import abc
 from game import Agent, Action
 from config import PLUS, MINUS, NO_SELECTION
 
-# PLUS = -1
-# MINUS = -2
-# NO_SELECTION = -1
-
 
 def choose_random(ring) -> int:
     return random.randint(0, ring.atom_count - 1)
@@ -97,7 +93,6 @@ def find_midway_next_to_plus(ring) -> int:
     return None
 
 
-# TODO it should find a longer chain, not the longest necessarily
 def find_bigger_chain_midway(ring) -> int:
     atom_count = ring.atom_count
 
@@ -125,9 +120,6 @@ def find_best_placement(ring) -> int:
 
 
 def exists_chain_of_length(ring, length: int) -> bool:
-    """
-    Check if there exists a chain of atoms in the ring that matches or exceeds a given length.
-    """
     atom_count = ring.atom_count
     for i in range(atom_count):
         # Calculate the chain length starting at index `i`
@@ -136,7 +128,16 @@ def exists_chain_of_length(ring, length: int) -> bool:
             return True
     return False
 
+class RandomAgent(Agent):
+    def get_action(self, game_state) -> Tuple[Action, int, int]:
+        ring = game_state.ring
+        center_atom = ring.center_atom.atom_number
 
+        if center_atom == MINUS:
+            return Action.SELECT_ATOM_MINUS, choose_random(ring), NO_SELECTION
+        else:
+            return Action.PLACE_ATOM, NO_SELECTION, choose_random(ring)
+        
 class AyeletAgent(Agent):
     def get_action(self, game_state) -> Tuple[Action, int, int]:
         ring = game_state.ring
@@ -146,7 +147,12 @@ class AyeletAgent(Agent):
         min_spawning_atom = 1 + total_turns // 40
 
         if center_atom == MINUS:
+            if atom_count == 1:
+                return Action.SELECT_ATOM_MINUS, 0, NO_SELECTION
             return self.handle_minus_atom(ring, min_spawning_atom)
+        
+        elif atom_count == 1 or atom_count == 0:
+            return Action.PLACE_ATOM, NO_SELECTION, 0
 
         elif center_atom == PLUS:
             return self.handle_plus_atom(ring, atom_count)
@@ -155,7 +161,6 @@ class AyeletAgent(Agent):
             return self.handle_regular_atom(ring, atom_count, game_state)
 
     def handle_minus_atom(self, ring, min_spawning_atom) -> Tuple[Action, int, int]:
-        """Handles logic when center atom is MINUS."""
         lowest_atom_value, lowest_atom_index = lowest_atom(ring)
 
         if lowest_atom_value < min_spawning_atom:
@@ -166,7 +171,6 @@ class AyeletAgent(Agent):
         return (Action.SELECT_ATOM_MINUS, chosen_atom_index, NO_SELECTION)
 
     def handle_plus_atom(self, ring, atom_count) -> Tuple[Action, int, int]:
-        """Handles logic when center atom is PLUS."""
         chosen_midway_index, longest_chain_length = find_longest_chain(ring)
         # Check if there is a plus next to the chosen midway
         if longest_chain_length < 2 or self.is_plus_nearby(ring, chosen_midway_index, atom_count):
@@ -174,7 +178,6 @@ class AyeletAgent(Agent):
         return Action.PLACE_ATOM, NO_SELECTION, chosen_midway_index
 
     def handle_regular_atom(self, ring, atom_count,game_state) -> Tuple[Action, int, int]:
-        """Handles logic when the center atom is neither PLUS nor MINUS."""
         if can_switch_to_plus(game_state) and (
                 (atom_count > 10 and exists_chain_of_length(ring, 4)) or
                 (atom_count > 14 and exists_chain_of_length(ring, 2))):
@@ -204,7 +207,6 @@ class AyeletAgent(Agent):
 
     def place_random_near_spawning_atoms(self, ring, atom_count) -> Tuple[Action, int, int]:
         """Finds a random placement midway between two spawning atoms, or chooses randomly if none found."""
-        print("Placing random near spawning atoms")
         i = choose_random(ring)
         # First look for a midway where both neighbors are below spawning limit
         for _ in range(atom_count):
@@ -222,30 +224,6 @@ class AyeletAgent(Agent):
 
         # If no suitable midway found, choose randomly
         return Action.PLACE_ATOM, NO_SELECTION, choose_random(ring)
-
-
-class SmartRandomAgent(Agent):
-    def get_action(self, game_state) -> Tuple[Action, int, int]:
-        ring = game_state.ring
-        center_atom = ring.center_atom.atom_number
-        atom_count = ring.atom_count
-
-        if center_atom == MINUS:
-            return Action.PLACE_ATOM, choose_random(ring), NO_SELECTION
-
-        elif center_atom == PLUS:
-            i = choose_random(ring)
-            for _ in range(atom_count):
-                if ring.atoms[i].atom_number == ring.atoms[(i + 1) % atom_count].atom_number:
-                    return Action.PLACE_ATOM, NO_SELECTION, i
-                i = (i + 1) % atom_count
-            return Action.PLACE_ATOM, NO_SELECTION, choose_random(ring)
-
-        else:
-            if can_switch_to_plus(ring) and random.random() < 0.5:
-                return Action.CONVERT_TO_PLUS, NO_SELECTION, NO_SELECTION
-            else:
-                return Action.PLACE_ATOM, NO_SELECTION, choose_random(ring)
 
 
 class ReflexAgent(Agent):

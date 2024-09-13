@@ -2,7 +2,7 @@ import argparse
 import pygame
 from game import Game, RandomOpponentAgent
 from game_state import GameState
-from agents import AyeletAgent, ReflexAgent, ExpectimaxAgent, SmartRandomAgent, MCTSAgent
+from agents import AyeletAgent, ReflexAgent, ExpectimaxAgent, RandomAgent, MCTSAgent
 from agents import score_evaluation_function, highest_atom_evaluation_function
 import pandas as pd
 
@@ -67,7 +67,7 @@ def agent_builder(agent_type, depth, simulations, priority):
             evaluation_function = highest_atom_evaluation_function
         agent = ExpectimaxAgent(depth=depth, prioritize_score=prioritize_score, evaluation_function=evaluation_function)
     elif agent_type == 'random':
-        agent = SmartRandomAgent()
+        agent = RandomAgent()
     else:
         raise ValueError(f"Unknown agent type: {agent_type}")
     return agent
