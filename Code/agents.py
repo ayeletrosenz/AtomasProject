@@ -623,6 +623,11 @@ def get_chains(atoms):
     list: A list of unique symmetric chains, where each chain is a list of Atom objects.
     """
     n = len(atoms)
+
+    # Early return for cases where n is less than 2, as no symmetric chain can exist
+    if n < 2:
+        return []
+
     chains = []
     seen_chains = set()  # Track unique chains based on their atom numbers.
 
@@ -690,3 +695,4 @@ def get_chains(atoms):
             chains.remove(full_length_chains[1])
 
     return chains
+
