@@ -2,18 +2,10 @@ import abc
 from game_state import Action, OpponentAction
 import pygame
 import time
-import main_no_shiny
-# import json
+from background import Background
 from printMove import print_move
 from config import SCREEN_WIDTH, SCREEN_HEIGHT, BACKGROUND_COLOR, atom_data
-#
-# SCREEN_WIDTH = 400
-# SCREEN_HEIGHT = 700
-# BACKGROUND_COLOR = (82, 42, 50)
-# PLUS = -1
-# MINUS = -2
-# with open(r"atom_data.json", "r") as f:
-#     atom_data = json.load(f)
+
 
 
 class Agent(object):
@@ -50,7 +42,7 @@ class Game(object):
             pygame.display.set_caption('Atomas')
             self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
             self.clock = pygame.time.Clock()
-            self.background = main_no_shiny.Background()
+            self.background = Background()
 
     def run(self, initial_state):
         self._should_quit = False
@@ -76,7 +68,6 @@ class Game(object):
 
             # Check if the game has ended
             if self._state.ring.check_game_end():
-                print(self._state.done)
                 final_score = self._state._ring.score
                 highest_atom = self._state._ring.highest_atom
                 self.quit()

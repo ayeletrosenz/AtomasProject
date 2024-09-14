@@ -32,5 +32,5 @@ def set_human_player(is_human):
 pygame.display.set_caption('Atomas')
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pygame.time.Clock()
-with open("../Atomas/atom_data.json", "r") as f:
+with open("atom_data.json", "r") as f:
     atom_data = json.load(f)

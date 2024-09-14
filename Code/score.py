@@ -50,7 +50,6 @@ class Score:
 
     def calc_chain_score(self,ring , sym, sym_indices, atoms):
         '''Calculates the score of a chain of atoms.'''
-        # print("Calculating chain score...")
 
         score_increase = 0
         reaction_step = 1
@@ -62,7 +61,6 @@ class Score:
             '''Helper function to calculate the score of a simple reaction.'''
             multiplier = reaction_multiplier(reaction_step)
             score = math.floor(multiplier * (atom_nb + 1))
-            # print(f"math.floor({multiplier} * ({atom_nb} + 1)) = {math.floor(multiplier * (atom_nb + 1))}")
             return score, atom_nb+1
 
         def complex_reaction(atom_nb_inner, atom_nb_outer):
@@ -70,12 +68,10 @@ class Score:
             score, _ = simple_reaction(atom_nb_inner)
 
             score += int(2 * multiplier * (atom_nb_outer - atom_nb_inner + 1))
-            # print(f"2 * {multiplier} * ({atom_nb_outer} - {atom_nb_inner} + 1) = {int(2 * multiplier * (atom_nb_outer - atom_nb_inner + 1))}")
 
             return score, atom_nb_outer + 2
 
         if len(sym) == 1:
-            # print("Simple reaction")
             score, new_atom_nb = simple_reaction(sym[0][0])
             score_increase += score
 
@@ -95,10 +91,8 @@ class Score:
 
                 outer_number = atom_nb[0]
                 if outer_number > atom_nb_inner:
-                    # print('complex reaction')
                     score, atom_nb_inner = complex_reaction(atom_nb_inner, outer_number)
                 else:
-                    # print("Simple reaction")
                     score, atom_nb_inner = simple_reaction(atom_nb_inner)
 
                 score_increase += score
@@ -110,5 +104,4 @@ class Score:
 
             ring.atoms.insert(sym_indices[-1][0], Atom(atom_nb_inner))
         self.update(score_increase)
-        # print("Score:", score_increase)
 

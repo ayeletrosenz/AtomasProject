@@ -515,8 +515,6 @@ def score_evaluation_function(state):
     return score
 
 
-
-
 def highest_atom_evaluation_function(state):
     score = state.highest_atom * 10000
 

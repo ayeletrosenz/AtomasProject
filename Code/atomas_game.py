@@ -38,7 +38,7 @@ def parse_arguments():
     parser.add_argument('--display', type=bool, default=True, help='Whether to display the game window (True/False)')
     parser.add_argument('--sleep_between_actions', help='Should sleep between actions.', default=False, type=bool)
     parser.add_argument('--print_move', type=bool, default=True, help='Whether to print each move (True/False)')
-    parser.add_argument('--agent', type=str, choices=['random', 'ayelet', 'reflex', 'mcts', 'expectimax'], default='mcts',
+    parser.add_argument('--agent', type=str, choices=['random', 'ayelet', 'reflex', 'mcts', 'expectimax'], default='random',
                         help='Type of agent to use [random, ayelet, reflex, mcts, expectimax]')
     parser.add_argument('--depth', type=int, default=2, help='Depth of the Expectimax search.')
     parser.add_argument('--simulations', type=int, default=20, help='Number of simulations of the MCTS agent.')
@@ -98,59 +98,6 @@ def run_agents_and_export_results(agent_type, num_of_games=1, depth=2, simulatio
     df.to_excel(output_file, index=False)
 
     print(f"\nResults exported to {output_file}")
-#
-# def main():
-#     args = parse_arguments()
-#
-#     if args.display:
-#         pygame.init()
-#
-#     num_of_games = args.num_of_games
-#     agent = agent_builder(agent_type=args.agent, depth=args.depth, simulations=args.simulations, priority=args.priority)
-#     # Informative printings about agent type and number of games
-#     print(f"Running {num_of_games} game(s) with agent type: {args.agent}")
-#     if args.agent == 'expectimax':
-#         print(f"Expectimax agent with depth: {args.depth} and prioritize {args.priority}")
-#     elif args.agent == 'mcts':
-#         print(f"MCTS agent with {args.simulations} simulations")
-#
-#     total_score = 0
-#     highest_score = 0
-#     highest_atom_achieved = 0
-#     initial_state = None
-#
-#     for i in range(num_of_games):
-#         # Informative print about the current game
-#         print(f"\nStarting game {i + 1} of {num_of_games}...")
-#
-#         # Pass the display surface to GameRunner
-#         game_runner = GameRunner(agent=agent, sleep_between_actions=args.sleep_between_actions,
-#                                  print_move=args.print_move, display=args.display)
-#         score, highest_atom = game_runner.new_game(initial_state)
-#         score_value = score.get_value()
-#
-#         # Track the total score for average calculation
-#         total_score += score_value
-#
-#         # Check if this is the highest score so far
-#         if score_value > highest_score:
-#             highest_score = score_value
-#
-#         # Check if this is the highest atom achieved
-#         if highest_atom > highest_atom_achieved:
-#             highest_atom_achieved = highest_atom
-#
-#     # Calculate average score
-#     average_score = total_score / num_of_games if num_of_games > 0 else 0
-#
-#     # Print the results
-#     print(f"\nHighest Score: {highest_score}")
-#     print(f"Highest Atom Achieved: {highest_atom_achieved}")
-#     print(f"Average Score: {average_score}")
-#
-#     if args.display:
-#         pygame.quit()
-#
 
 def main():
     args = parse_arguments()
@@ -158,17 +105,70 @@ def main():
     if args.display:
         pygame.init()
 
-    for agent_type in ['reflex','ayelet', 'mcts', 'expectimax']:
-        run_agents_and_export_results(
-            agent_type=agent_type,
-            num_of_games=args.num_of_games,
-            depth=args.depth,
-            simulations=args.simulations,
-            priority=args.priority
-        )
+    num_of_games = args.num_of_games
+    agent = agent_builder(agent_type=args.agent, depth=args.depth, simulations=args.simulations, priority=args.priority)
+    # Informative printings about agent type and number of games
+    print(f"Running {num_of_games} game(s) with agent type: {args.agent}")
+    if args.agent == 'expectimax':
+        print(f"Expectimax agent with depth: {args.depth} and prioritize {args.priority}")
+    elif args.agent == 'mcts':
+        print(f"MCTS agent with {args.simulations} simulations")
+
+    total_score = 0
+    highest_score = 0
+    highest_atom_achieved = 0
+    initial_state = None
+
+    for i in range(num_of_games):
+        # Informative print about the current game
+        print(f"\nStarting game {i + 1} of {num_of_games}...")
+
+        # Pass the display surface to GameRunner
+        game_runner = GameRunner(agent=agent, sleep_between_actions=args.sleep_between_actions,
+                                 print_move=args.print_move, display=args.display)
+        score, highest_atom = game_runner.new_game(initial_state)
+        score_value = score.get_value()
+
+        # Track the total score for average calculation
+        total_score += score_value
+
+        # Check if this is the highest score so far
+        if score_value > highest_score:
+            highest_score = score_value
+
+        # Check if this is the highest atom achieved
+        if highest_atom > highest_atom_achieved:
+            highest_atom_achieved = highest_atom
+
+    # Calculate average score
+    average_score = total_score / num_of_games if num_of_games > 0 else 0
+
+    # Print the results
+    print(f"\nHighest Score: {highest_score}")
+    print(f"Highest Atom Achieved: {highest_atom_achieved}")
+    print(f"Average Score: {average_score}")
 
     if args.display:
         pygame.quit()
+
+# # Main for printing to excel file
+# def main():
+#     args = parse_arguments()
+
+#     if args.display:
+#         pygame.init()
+
+#     for agent_type in ['reflex','ayelet', 'mcts', 'expectimax']:
+#         run_agents_and_export_results(
+#             agent_type=agent_type,
+#             num_of_games=args.num_of_games,
+#             depth=args.depth,
+#             simulations=args.simulations,
+#             priority=args.priority
+#         )
+
+#     if args.display:
+#         pygame.quit()
 
 
 if __name__ == '__main__':

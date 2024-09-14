@@ -12,8 +12,7 @@ def print_move(game_state, action):
     if clicked_mid:
         print("Switched to plus")
     else:
-        if chosen_atom_index != NO_SELECTION:
+        if chosen_atom_index and chosen_atom_index != -1:
             print("Chosen atom index: ", chosen_atom_index)
-        if midway_index != NO_SELECTION:
+        if midway_index and midway_index != -1:
             print("Chosen midway index: ", midway_index)
-    # print("Number of atoms: ", game_state._ring.atom_count, ".")

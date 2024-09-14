@@ -156,12 +156,9 @@ class Ring:
         def place_normal(self):
             '''Function to place a non-special atom.'''
             closest_midway = chosen_midway_index
-            # print("Place normal: ", self.center_atom.symbol, self.center_atom.atom_number)
 
             self.atoms.insert(closest_midway+1, self.center_atom)
             self.update_atom_count()
-            # I put it in comment because the opponent is generating the inner atom now.
-            # self.generate_inner()
 
         def find_symmetry_indices(atoms, pivot):
             atom_list = [atom.atom_number for atom in atoms]
@@ -185,7 +182,6 @@ class Ring:
 
             roll = np.roll(atom_list, n//2 - pivot)
             roll = [str(i) if i.isalpha() else int(i) for i in roll]
-            # print(roll)
             roll_indices = np.roll(atom_indices, n//2 - pivot)
             roll_indices = [str(i) if i.isalpha() else int(i) for i in roll_indices]
 
@@ -265,7 +261,6 @@ class Ring:
             if self.center_atom.symbol == "+" and self.atom_count == 1:
                 place_normal(self)
             elif self.center_atom.symbol == "+" and self.atom_count > 1:
-                # print("here", self.center_atom.symbol)
                 use_plus(self)
             elif self.center_atom.symbol == "-":
                 use_minus(self)
