@@ -46,9 +46,11 @@ class Ring:
         '''Helper function to update the highest scoring atom in the ring.'''
         to_check = [i.atom_number for i in self.atoms if i.atom_number > 0]
 
-        current_highest = int(sorted(to_check, key=int)[-1])
-        if current_highest > self.highest_atom:
-            self.highest_atom = current_highest
+        # Use max instead of sorted for better performance
+        if to_check:
+            current_highest = max(to_check)
+            if current_highest > self.highest_atom:
+                self.highest_atom = current_highest
 
     def get_score(self):
         return self.score.get_value()
