@@ -236,6 +236,10 @@ class Ring:
                 atom_list = [atom.atom_number for atom in atoms]
                 atom_indices = [i for i in range(len(atom_list))]
 
+                # Break if there are only two atoms and one is a PLUS
+                if len(atom_list) == 2 and PLUS in atom_list:
+                    break
+
                 new_fusions = []
                 for number, indice in zip(range(len(atom_list)), atom_indices):
                     if atom_list[number] == PLUS:

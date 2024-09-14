@@ -350,7 +350,6 @@ class Node:
     def is_fully_expanded(self):
         return len(self.children) == len(self.state.get_legal_actions(agent_index=0))
 
-
 class ExpectimaxAgent(Agent):
     """
     Your expectimax agent
